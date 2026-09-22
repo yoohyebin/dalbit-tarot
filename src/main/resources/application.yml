@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: dalbit-tarot
+
+  datasource:
+    url: jdbc:mysql://localhost:3307/dalbit_tarot?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+    username: dalbit
+    password: dalbit
+
+  jpa:
+    hibernate:
+      ddl-auto: validate   # 스키마는 Flyway가 관리한다
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+
+  thymeleaf:
+    cache: false
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    kr.dalbittarot: DEBUG

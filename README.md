@@ -30,12 +30,37 @@
 사전 요구사항: JDK 21, Docker Desktop
 
 ```bash
+docker compose up -d
 ./gradlew bootRun
+```
+
+기동 확인: http://localhost:8080/actuator/health → `{"status":"UP"}`
+
+### 로컬 DB
+
+| 항목 | 값 |
+|---|---|
+| 호스트 포트 | **3307** (컨테이너 내부는 3306) |
+| DB | `dalbit_tarot` |
+| 계정 | `dalbit` / `dalbit` |
+
+> **포트가 3307인 이유**: 로컬에 Homebrew MySQL이 127.0.0.1:3306을 점유하고 있으면
+> JDBC가 컨테이너 대신 그쪽으로 붙어 `Access denied` 가 납니다. 충돌을 피하려고 3307로 옮겼습니다.
+> Homebrew MySQL을 쓰지 않는다면 `brew services stop mysql` 후 3306으로 되돌려도 됩니다.
+
+스키마는 Flyway(`src/main/resources/db/migration`)가 관리하며, JPA는 `ddl-auto: validate`로 검증만 합니다.
+
+### 테스트
+
+테스트가 실제 MySQL에 붙으므로 `docker compose up -d` 가 먼저 실행돼 있어야 합니다.
+
+```bash
+./gradlew test
 ```
 
 ## 개발 단계
 
-- [x] 1. 개발 환경 세팅
+- [x] 1. 개발 환경 세팅 (로컬 기동 확인 완료)
 - [ ] 2. 데이터 모델 설계 및 DB 구축 (카드 78장 시드)
 - [ ] 3. 백엔드 코어 API (카드 뽑기, 세션 저장)
 - [ ] 4. LLM 연동 (프롬프트, 호출, 후처리)
