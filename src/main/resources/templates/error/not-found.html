@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('찾을 수 없음')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: siteHeader}"></header>
+
+<main class="wrap">
+    <section class="fade-in">
+        <h1>페이지를 찾을 수 없어요</h1>
+        <p>주소가 잘못되었거나 결과가 더 이상 남아 있지 않습니다.</p>
+    </section>
+    <section>
+        <a class="btn btn-primary" th:href="@{/reading/select}">새로 카드 뽑기</a>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: siteFooter}"></footer>
+</body>
+</html>

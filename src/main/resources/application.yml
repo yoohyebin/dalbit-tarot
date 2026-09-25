@@ -50,3 +50,12 @@ dalbit:
     enabled: true
     capacity: 10
     window: 1m
+
+  retention:
+    period: 365d   # 개인정보처리방침의 '1년 후 자동 삭제' 와 맞춰야 한다
+    cron: "0 30 4 * * *"
+
+  privacy:
+    # 개인정보처리방침 페이지에 그대로 노출된다. 비어 있으면 '미기재' 로 표시된다
+    owner-name: ${PRIVACY_OWNER_NAME:}
+    contact-email: ${PRIVACY_CONTACT_EMAIL:}

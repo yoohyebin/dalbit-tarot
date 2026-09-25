@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(null)}"></head>
+<body>
+<header th:replace="~{fragments/layout :: siteHeader}"></header>
+
+<main class="wrap">
+    <section class="fade-in">
+        <h1>오늘의 카드를<br>한 장 뽑아 보세요</h1>
+        <p>궁금한 분야를 고르고 카드를 뽑으면, 뽑힌 카드에 맞춰 해석을 보여드립니다.</p>
+        <p class="hint">회원가입도 결제도 없습니다. 바로 시작할 수 있어요.</p>
+    </section>
+
+    <section>
+        <a class="btn btn-primary" th:href="@{/reading/select}">카드 뽑기 시작</a>
+    </section>
+
+    <div class="notice">
+        <strong>읽기 전에</strong><br>
+        이 서비스의 해석은 재미와 참고를 위한 콘텐츠입니다. 생년월일을 입력하더라도 실제 사주(만세력)를
+        계산하지 않고, 해석 문장을 만들 때 참고 정보로만 씁니다. 중요한 결정은 카드가 아니라 본인의
+        판단과 전문가의 조언에 따라 내리세요.
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: siteFooter}"></footer>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('결과')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: siteHeader}"></header>
+
+<main class="wrap">
+    <section class="fade-in">
+        <h1 th:text="${reading.categoryLabel}">금전운</h1>
+        <p class="hint" th:text="${reading.spreadType.label} + ' · ' + ${#temporals.format(reading.createdAt, 'yyyy년 M월 d일')}">
+            3카드
+        </p>
+    </section>
+
+    <section class="result-cards">
+        <article class="result-card" th:each="card : ${reading.cards}">
+            <img th:src="@{${card.imageUrl}}" th:alt="${card.nameKo}"
+                 th:classappend="${card.reversed} ? 'reversed' : ''" loading="lazy">
+            <div class="meta">
+                <span class="position" th:text="${card.position} + '번째 카드'">1번째 카드</span>
+                <h2 class="name" th:text="${card.nameKo}">여사제</h2>
+                <span class="name-en" th:text="${card.nameEn}">The High Priestess</span>
+                <span class="orientation" th:text="${card.reversed} ? '역방향' : '정방향'">정방향</span>
+                <p class="meaning" th:text="${card.meaning}">카드 의미</p>
+            </div>
+        </article>
+    </section>
+
+    <section>
+        <h2>해석</h2>
+
+        <!-- 이미 해석이 있으면 그대로 보여준다 -->
+        <div class="interpretation" id="interpretation"
+             th:if="${reading.interpretation != null}"
+             th:text="${reading.interpretation}">해석 본문</div>
+
+        <!-- 없으면 브라우저가 해석을 요청한다. 10초 안팎 걸려 서버 렌더링으로는 못 기다린다 -->
+        <div th:if="${reading.interpretation == null}">
+            <div class="loading" id="loading">
+                <div class="moon-spinner"></div>
+                <p class="message" id="loading-message">카드를 읽고 있어요…</p>
+            </div>
+            <div class="interpretation" id="interpretation" hidden></div>
+            <button type="button" class="btn btn-ghost" id="retry" hidden>다시 시도</button>
+        </div>
+    </section>
+
+    <section class="btn-row">
+        <button type="button" class="btn" id="share">결과 공유하기</button>
+        <a class="btn btn-ghost" th:href="@{/reading/select}">다시 뽑기</a>
+    </section>
+
+    <div class="notice">
+        이 해석은 참고용 콘텐츠입니다. 입력하신 생년월일은 해석 문장을 만들 때만 참고했고,
+        실제 사주 계산에는 쓰지 않았습니다.
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: siteFooter}"></footer>
+<script th:src="@{/js/result.js}"
+        th:attr="data-share-token=${reading.shareToken},data-needs-interpretation=${reading.interpretation == null}"></script>
+</body>
+</html>

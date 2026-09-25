@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('정보 입력')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: siteHeader}"></header>
+
+<main class="wrap">
+    <section class="fade-in">
+        <h1 th:text="${category.label}">애정운</h1>
+        <p class="hint" th:text="${category.description}">설명</p>
+    </section>
+
+    <form id="input-form" autocomplete="off">
+        <input type="hidden" id="category-code" th:value="${category.code}">
+
+        <div class="field">
+            <label>몇 장을 뽑을까요?</label>
+            <div class="choice-group">
+                <label class="choice" th:each="spread, iter : ${spreadTypes}">
+                    <input type="radio" name="spreadType" th:value="${spread.name()}"
+                           th:attr="data-card-count=${spread.cardCount}" th:checked="${iter.first}">
+                    <span th:text="${spread.label} + ' (' + ${spread.cardCount} + '장)'">원카드 (1장)</span>
+                </label>
+            </div>
+        </div>
+
+        <div class="field">
+            <label for="birth-date">생년월일<span class="optional">선택</span></label>
+            <input type="date" id="birth-date" name="birthDate" min="1900-01-01">
+            <p class="hint">해석 문장을 만들 때 참고만 합니다. 사주 계산은 하지 않습니다.</p>
+        </div>
+
+        <div class="field">
+            <label for="gender">성별<span class="optional">선택</span></label>
+            <select id="gender" name="gender">
+                <option value="NONE">선택하지 않음</option>
+                <option value="FEMALE">여성</option>
+                <option value="MALE">남성</option>
+            </select>
+        </div>
+
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">카드 뽑으러 가기</button>
+            <button type="button" class="btn btn-ghost" id="skip">입력 없이 바로 뽑기</button>
+        </div>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: siteFooter}"></footer>
+<script th:src="@{/js/input.js}"></script>
+</body>
+</html>
