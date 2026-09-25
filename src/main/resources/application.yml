@@ -34,3 +34,19 @@ management:
 logging:
   level:
     kr.dalbittarot: DEBUG
+
+dalbit:
+  llm:
+    # 키가 비어 있으면 StubLlmClient 로 뜬다. 실제 해석을 보려면 GEMINI_API_KEY 를 넣는다
+    api-key: ${GEMINI_API_KEY:}
+    model: gemini-2.5-flash-lite   # 저비용 모델. 구현 시점 가격 재확인 필요
+    base-url: https://generativelanguage.googleapis.com/v1beta
+    max-output-tokens: 700         # 비용이 출력 토큰에 붙으므로 상한을 둔다
+    temperature: 0.9               # 같은 카드라도 문장이 조금씩 달라지게
+    timeout: 20s
+    max-retries: 1
+
+  rate-limit:
+    enabled: true
+    capacity: 10
+    window: 1m

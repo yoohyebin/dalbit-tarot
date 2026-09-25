@@ -36,6 +36,18 @@ docker compose up -d
 
 기동 확인: http://localhost:8080/actuator/health → `{"status":"UP"}`
 
+### LLM API 키
+
+키 없이도 기동된다. 이때는 `StubLlmClient` 가 떠서 예시 문장을 돌려주므로 화면 작업은 가능하다.
+실제 해석을 보려면 [Google AI Studio](https://aistudio.google.com/apikey) 에서 키를 받아 넣는다.
+
+```bash
+export GEMINI_API_KEY=발급받은_키
+./gradlew bootRun
+```
+
+무료 티어는 입력이 모델 학습에 쓰인다. 생년월일을 받는 서비스이므로 **오픈 전에 유료 티어로 전환**해야 한다.
+
 ### 로컬 DB
 
 | 항목 | 값 |
@@ -61,9 +73,9 @@ docker compose up -d
 ## 개발 단계
 
 - [x] 1. 개발 환경 세팅 (로컬 기동 확인 완료)
-- [ ] 2. 데이터 모델 설계 및 DB 구축 (카드 78장 시드)
-- [ ] 3. 백엔드 코어 API (카드 뽑기, 세션 저장)
-- [ ] 4. LLM 연동 (프롬프트, 호출, 후처리)
+- [x] 2. 데이터 모델 설계 및 DB 구축 (카드 78장 시드)
+- [x] 3. 백엔드 코어 API (카드 뽑기, 세션 저장)
+- [x] 4. LLM 연동 (프롬프트, 호출, 후처리)
 - [ ] 5. 화면 개발 (Thymeleaf, 반응형)
 - [ ] 6. 테스트
 - [ ] 7. AWS 배포
