@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '4.1.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
 }
 
 group = 'kr.dalbittarot'
@@ -44,4 +45,29 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+jacoco {
+	toolVersion = '0.8.13'
+}
+
+tasks.named('test') {
+	finalizedBy tasks.named('jacocoTestReport')
+}
+
+tasks.named('jacocoTestReport') {
+	dependsOn tasks.named('test')
+	reports {
+		xml.required = true
+		html.required = true
+	}
+	// 설정 클래스·DTO 는 로직이 없어 커버리지 대상에서 뺀다
+	classDirectories.setFrom(files(sourceSets.main.output.classesDirs.collect {
+		fileTree(dir: it, exclude: [
+				'**/DalbitTarotApplication.class',
+				'**/*Properties.class',
+				'**/*Config.class',
+				'**/dto/**'
+		])
+	}))
 }

@@ -70,6 +70,8 @@ export GEMINI_API_KEY=발급받은_키
 ./gradlew test
 ```
 
+커버리지 리포트는 `build/reports/jacoco/test/html/index.html` 에 생성됩니다.
+
 ## 개발 단계
 
 - [x] 1. 개발 환경 세팅 (로컬 기동 확인 완료)
@@ -77,7 +79,7 @@ export GEMINI_API_KEY=발급받은_키
 - [x] 3. 백엔드 코어 API (카드 뽑기, 세션 저장)
 - [x] 4. LLM 연동 (프롬프트, 호출, 후처리)
 - [x] 5. 화면 개발 (Thymeleaf, 반응형)
-- [ ] 6. 테스트
+- [x] 6. 테스트
 - [ ] 7. AWS 배포
 - [ ] 8. 운영 및 모니터링
 
