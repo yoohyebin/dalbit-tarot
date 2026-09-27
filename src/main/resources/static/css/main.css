@@ -68,17 +68,19 @@ a:hover { text-decoration: underline; }
 }
 
 .site-header {
-    padding: 28px var(--gutter) 8px;
+    padding: 52px var(--gutter) 28px;
     text-align: center;
 }
 
 .site-header .logo {
     font-family: var(--serif);
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: var(--gold);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
 }
+
+.wrap > section:first-of-type { margin-top: 8px; }
 
 .site-footer {
     margin-top: 48px;
@@ -190,13 +192,22 @@ section { margin-bottom: 32px; }
 
 input[type="date"], select {
     width: 100%;
-    padding: 13px 14px;
+    /* 이게 없으면 네이티브 달력 아이콘과 팝업이 밝은 테마로 떠서 어두운 배경에 묻힌다 */
+    color-scheme: dark;
+    padding: 17px 16px;
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
     background: var(--bg-soft);
     color: var(--text);
     font: inherit;
-    font-size: 1rem;
+    font-size: 1.05rem;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    opacity: 0.85;
 }
 
 input[type="date"]:focus, select:focus {
@@ -235,26 +246,52 @@ input[type="date"]:focus, select:focus {
 
 /* --- 카드 뒷면 (뽑기 화면) --- */
 
+/*
+ * 카드를 부채꼴로 편다. 각 카드를 같은 자리에 겹쳐 두고, 회전 중심을 카드 아래쪽 바깥으로
+ * 내린 다음 각도만 달리 주면 호를 그리며 펼쳐진다. --angle 은 draw.js 가 넣는다.
+ */
 .deck {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin: 24px 0;
+    --card-width: 58px;
+    --spread: 88deg;          /* 부채 전체가 벌어지는 각도 */
+    --pivot: 240%;            /* 회전 중심. 클수록 호가 완만해진다 */
+    --arc-drop: 52px;         /* 바깥 카드가 호를 따라 내려앉는 만큼. 안 띄우면 아래 문구와 겹친다 */
+
+    position: relative;
+    height: 226px;
+    margin: 4px 0 2px;
+
+    /* 부채는 본문 여백을 넘어 화면 끝까지 쓴다. 회전한 카드가 제 폭보다 넓은 자리를
+       차지하므로, 여백을 조금만 남겨도 부채가 눈에 띄게 좁아진다 */
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
 }
 
 .card-back {
+    position: absolute;
+    left: 50%;
+    bottom: var(--arc-drop);
+    width: var(--card-width);
+    margin-left: calc(var(--card-width) / -2);
     aspect-ratio: 100 / 168;
-    border: 1px solid var(--line);
+    /* 겹쳐 있어도 장마다 경계가 읽히게 테두리를 밝히고 그림자로 층을 만든다.
+       경계가 흐리면 장수가 같아도 훨씬 빽빽해 보인다. */
+    border: 1px solid #3d4478;
     border-radius: var(--radius-sm);
     background:
         radial-gradient(circle at 50% 38%, rgba(217, 178, 106, 0.22) 0%, transparent 55%),
         linear-gradient(160deg, #232750 0%, #1b1f3c 100%);
     background-color: #1b1f3c;
+    box-shadow: -3px 0 8px rgba(0, 0, 0, 0.45);
     padding: 0;
     cursor: pointer;
-    position: relative;
     overflow: hidden;
-    transition: transform 0.18s ease, border-color 0.18s ease;
+    z-index: var(--z, 1);             /* draw.js 가 부채 순서대로 넣는다 */
+    transform-origin: 50% var(--pivot);
+    transform: rotate(0deg);          /* 펼치기 전에는 한 자리에 포개져 있다 */
+    /* 고르고 푸는 건 즉각적이어야 한다. 펼침 애니메이션 길이를 그대로 쓰면 굼떠 보인다 */
+    transition: transform 0.16s ease-out,
+                border-color 0.12s ease-out,
+                box-shadow 0.12s ease-out;
 }
 
 .card-back::after {
@@ -264,26 +301,69 @@ input[type="date"]:focus, select:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.15rem;
     color: rgba(240, 217, 168, 0.5);
 }
 
-.card-back:hover:not(:disabled) { transform: translateY(-4px); border-color: var(--gold); }
+/* 펼친 상태 */
+.deck.spread .card-back { transform: rotate(var(--angle)); }
 
-.card-back.picked {
+/*
+ * hover 로는 카드를 들어올리지 않는다. 테두리만 밝힌다.
+ * 들어올리면 선택을 푼 직후 커서가 그대로 카드 위에 있어서
+ * -34px → -12px 로 멈췄다가 마우스를 치워야 부채로 돌아간다. 두 단계로 움직여 어색하다.
+ * 터치 기기는 탭한 뒤에도 hover 가 남으므로 (hover: hover) 로 막아 둔다.
+ */
+@media (hover: hover) and (pointer: fine) {
+    .deck.spread .card-back:hover:not(:disabled):not(.picked) {
+        border-color: rgba(217, 178, 106, 0.55);
+        z-index: 200;
+    }
+}
+
+/* 선택을 푼 직후. z-index 는 전환되지 않아서 그냥 두면 내려가는 도중에
+   이웃 카드 뒤로 숨어 버린다. 애니메이션이 끝날 때까지만 앞에 둔다 */
+.deck.spread .card-back.returning { z-index: 250; }
+
+.deck.spread .card-back.picked {
+    transform: rotate(var(--angle)) translateY(-34px);
     border-color: var(--gold);
-    transform: translateY(-6px);
-    box-shadow: 0 6px 20px rgba(217, 178, 106, 0.25);
+    box-shadow: 0 8px 24px rgba(217, 178, 106, 0.3);
+    z-index: 300;
+}
+
+/* 펼칠 때만 느린 전환에 순서대로 딜레이를 준다. 다 펴지면 draw.js 가 이 클래스를 뗀다 */
+.deck.dealing .card-back {
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--deal-delay);
 }
 
 .card-back:disabled { cursor: default; }
-.card-back.dimmed { opacity: 0.35; }
+.deck.spread .card-back.dimmed { opacity: 0.28; }
 
 .deck-status {
     text-align: center;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     color: var(--text-dim);
     min-height: 1.7em;
+}
+
+/* 뽑기 완료. 카드에서 눈이 떠나지 않게 작게 둔다 */
+.deck-confirm { text-align: center; margin-top: 4px; }
+
+.deck-confirm .btn {
+    display: inline-block;
+    width: auto;
+    min-width: 132px;
+    padding: 10px 26px;
+    font-size: 0.92rem;
+}
+
+/* 배경 없이 테두리와 글자만. hover 에서도 채우지 않는다 */
+.deck-confirm .btn:hover:not(:disabled) {
+    background: transparent;
+    border-color: var(--gold-soft);
+    color: #fff;
 }
 
 /* --- 결과 카드 --- */
@@ -384,11 +464,28 @@ input[type="date"]:focus, select:focus {
 .doc ul { padding-left: 20px; }
 .doc li { margin-bottom: 6px; }
 
+/* 아주 좁은 화면. 회전한 카드는 제 폭보다 넓은 자리를 차지해서 각도를 더 줄여야 한다 */
+@media (max-width: 360px) {
+    .deck {
+        --card-width: 52px;
+        --spread: 82deg;
+        --arc-drop: 44px;
+        height: 200px;
+    }
+}
+
 /* --- 데스크톱 --- */
 
 @media (min-width: 640px) {
     h1 { font-size: 2.1rem; }
-    .deck { grid-template-columns: repeat(6, 1fr); }
+    /* 데스크톱에서도 본문 폭에 가두지 않는다. 부채만 넓게 쓴다 */
+    .deck {
+        --card-width: 96px;
+        --spread: 100deg;
+        --pivot: 235%;
+        --arc-drop: 104px;
+        height: 372px;
+    }
     .btn-row { flex-direction: row; }
     .result-card img { width: 110px; flex-basis: 110px; }
 }

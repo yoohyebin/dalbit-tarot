@@ -7,15 +7,19 @@
 <main class="wrap">
     <section class="fade-in">
         <h1 id="deck-title">카드를 골라 주세요</h1>
-        <p class="hint" id="deck-guide">마음이 가는 카드를 뒤집어 보세요.</p>
+        <p class="hint" id="deck-guide">마음이 가는 카드를 고르세요. 다시 누르면 선택이 풀립니다.</p>
     </section>
 
     <div class="deck" id="deck">
-        <button type="button" class="card-back" th:each="i : ${#numbers.sequence(1, 12)}"
+        <button type="button" class="card-back" th:each="i : ${#numbers.sequence(1, 26)}"
                 th:attr="data-index=${i}" th:aria-label="'카드 ' + ${i}"></button>
     </div>
 
     <p class="deck-status" id="deck-status"></p>
+
+    <div class="deck-confirm">
+        <button type="button" class="btn" id="confirm" disabled>뽑기 완료</button>
+    </div>
 
     <div class="loading" id="loading" hidden>
         <div class="moon-spinner"></div>
