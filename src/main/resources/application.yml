@@ -56,6 +56,6 @@ dalbit:
     cron: "0 30 4 * * *"
 
   privacy:
-    # 개인정보처리방침 페이지에 그대로 노출된다. 비어 있으면 '미기재' 로 표시된다
-    owner-name: ${PRIVACY_OWNER_NAME:}
-    contact-email: ${PRIVACY_CONTACT_EMAIL:}
+    # 개인정보처리방침 페이지에 그대로 노출되는 값이다. 법적으로 연락이 닿아야 하는 정보라 숨기지 않는다
+    owner-name: 유혜빈
+    contact-email: hyebin218@naver.com
