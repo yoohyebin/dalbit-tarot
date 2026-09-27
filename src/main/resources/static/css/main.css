@@ -11,6 +11,8 @@
     --gold-soft: #f0d9a8;
     --danger: #e0767b;
 
+    --serif: 'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+
     --radius: 14px;
     --radius-sm: 8px;
     --gutter: 16px;
@@ -40,7 +42,7 @@ body {
 }
 
 h1, h2, h3 {
-    font-family: 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+    font-family: var(--serif);
     font-weight: 600;
     line-height: 1.4;
     letter-spacing: -0.02em;
@@ -71,8 +73,9 @@ a:hover { text-decoration: underline; }
 }
 
 .site-header .logo {
-    font-family: 'Nanum Myeongjo', serif;
+    font-family: var(--serif);
     font-size: 1.1rem;
+    font-weight: 600;
     color: var(--gold);
     letter-spacing: 0.08em;
 }
@@ -160,7 +163,7 @@ section { margin-bottom: 32px; }
 
 .category-item .label {
     display: block;
-    font-family: 'Nanum Myeongjo', serif;
+    font-family: var(--serif);
     font-size: 1.15rem;
     color: var(--gold-soft);
     margin-bottom: 2px;
@@ -314,7 +317,7 @@ input[type="date"]:focus, select:focus {
 }
 
 .result-card .name {
-    font-family: 'Nanum Myeongjo', serif;
+    font-family: var(--serif);
     font-size: 1.1rem;
     margin: 2px 0;
 }
