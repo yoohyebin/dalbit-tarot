@@ -100,7 +100,9 @@ function start(reading) {
 
             const result = await response.json();
             sessionStorage.removeItem(STORAGE_KEY);
-            location.href = `/reading/result/${result.shareToken}`;
+            /* replace 로 넘긴다. 뽑기는 이미 끝났으므로 결과에서 뒤로 가면
+               뽑기 화면이 아니라 정보 입력 화면으로 돌아가야 한다 */
+            location.replace(`/reading/result/${result.shareToken}`);
         } catch (error) {
             reset(error.message);
         }
@@ -139,6 +141,20 @@ function start(reading) {
     deal();
     updateStatus();
 }
+
+/* 뒤로·앞으로 이동으로 돌아온 경우.
+   브라우저가 DOM 을 그대로 복원해서(bfcache) 제출 중이던 로딩 화면이 그대로 남는다.
+   이때는 스크립트도 다시 실행되지 않으므로 pageshow 에서 직접 처리한다. */
+window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) {
+        return;
+    }
+    if (sessionStorage.getItem(STORAGE_KEY)) {
+        location.reload();   // 아직 뽑지 않았다면 처음부터 다시 고르게 한다
+    } else {
+        location.replace('/reading/select');
+    }
+});
 
 /* location.replace() 는 스크립트 실행을 멈추지 않는다.
    이어서 진행하면 null 을 파싱하게 되므로 분기로 끊는다. */
