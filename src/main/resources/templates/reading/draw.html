@@ -11,14 +11,14 @@
     </section>
 
     <div class="deck" id="deck">
-        <button type="button" class="card-back" th:each="i : ${#numbers.sequence(1, 15)}"
+        <button type="button" class="card-back" th:each="i : ${#numbers.sequence(1, 26)}"
                 th:attr="data-index=${i}" th:aria-label="'카드 ' + ${i}"></button>
     </div>
 
     <p class="deck-status" id="deck-status"></p>
 
-    <div class="btn-row">
-        <button type="button" class="btn btn-primary" id="confirm" disabled>뽑기 완료</button>
+    <div class="deck-confirm">
+        <button type="button" class="btn" id="confirm" disabled>뽑기 완료</button>
     </div>
 
     <div class="loading" id="loading" hidden>
