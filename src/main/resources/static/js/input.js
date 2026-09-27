@@ -6,7 +6,7 @@ const STORAGE_KEY = 'dalbit.reading';
 const form = document.getElementById('input-form');
 const categoryCode = document.getElementById('category-code').value;
 
-function collect(includeOptional) {
+function collect() {
     const checked = form.querySelector('input[name="spreadType"]:checked');
     const gender = document.getElementById('gender').value;
     const birthDate = document.getElementById('birth-date').value;
@@ -15,19 +15,13 @@ function collect(includeOptional) {
         categoryCode,
         spreadType: checked.value,
         cardCount: Number(checked.dataset.cardCount),
-        birthDate: includeOptional && birthDate ? birthDate : null,
-        gender: includeOptional && gender !== 'NONE' ? gender : null,
+        birthDate: birthDate || null,
+        gender: gender !== 'NONE' ? gender : null,
     };
-}
-
-function go(includeOptional) {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(collect(includeOptional)));
-    location.href = '/reading/draw';
 }
 
 form.addEventListener('submit', (event) => {
     event.preventDefault();
-    go(true);
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(collect()));
+    location.href = '/reading/draw';
 });
-
-document.getElementById('skip').addEventListener('click', () => go(false));
