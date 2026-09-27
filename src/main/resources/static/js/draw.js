@@ -5,6 +5,7 @@ const STORAGE_KEY = 'dalbit.reading';
 
 const DEAL_STEP_MS = 26;      // 카드 한 장씩 밀리는 간격
 const DEAL_DURATION_MS = 550; // CSS transition 길이와 맞춘다
+const PICK_DURATION_MS = 160; // 고르고 푸는 전환 길이. CSS 와 맞춘다
 
 function start(reading) {
     const deck = document.getElementById('deck');
@@ -26,7 +27,9 @@ function start(reading) {
             const ratio = last === 0 ? 0.5 : index / last;
             card.style.setProperty('--angle', `${(ratio - 0.5) * spread}deg`);
             card.style.setProperty('--deal-delay', `${index * DEAL_STEP_MS}ms`);
-            card.style.zIndex = String(index + 1);
+            /* 인라인 z-index 로 넣으면 스타일시트의 .picked 규칙을 이겨서
+               고른 카드가 이웃에 가린 채로 올라간다. 변수로 넘겨 CSS 가 덮을 수 있게 한다 */
+            card.style.setProperty('--z', String(index + 1));
         });
     }
 
@@ -112,6 +115,8 @@ function start(reading) {
             if (picked.has(card)) {
                 picked.delete(card);
                 card.classList.remove('picked');
+                card.classList.add('returning');
+                setTimeout(() => card.classList.remove('returning'), PICK_DURATION_MS);
                 updateStatus();
                 return;
             }
