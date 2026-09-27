@@ -68,17 +68,19 @@ a:hover { text-decoration: underline; }
 }
 
 .site-header {
-    padding: 28px var(--gutter) 8px;
+    padding: 52px var(--gutter) 28px;
     text-align: center;
 }
 
 .site-header .logo {
     font-family: var(--serif);
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     font-weight: 600;
     color: var(--gold);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
 }
+
+.wrap > section:first-of-type { margin-top: 8px; }
 
 .site-footer {
     margin-top: 48px;
@@ -190,13 +192,22 @@ section { margin-bottom: 32px; }
 
 input[type="date"], select {
     width: 100%;
-    padding: 13px 14px;
+    /* 이게 없으면 네이티브 달력 아이콘과 팝업이 밝은 테마로 떠서 어두운 배경에 묻힌다 */
+    color-scheme: dark;
+    padding: 17px 16px;
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
     background: var(--bg-soft);
     color: var(--text);
     font: inherit;
-    font-size: 1rem;
+    font-size: 1.05rem;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    opacity: 0.85;
 }
 
 input[type="date"]:focus, select:focus {
@@ -235,14 +246,27 @@ input[type="date"]:focus, select:focus {
 
 /* --- 카드 뒷면 (뽑기 화면) --- */
 
+/*
+ * 카드를 부채꼴로 편다. 각 카드를 같은 자리에 겹쳐 두고, 회전 중심을 카드 아래쪽 바깥으로
+ * 내린 다음 각도만 달리 주면 호를 그리며 펼쳐진다. --angle 은 draw.js 가 넣는다.
+ */
 .deck {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 10px;
-    margin: 24px 0;
+    --card-width: 74px;
+    --spread: 64deg;          /* 부채 전체가 벌어지는 각도. 좁은 폰에서 잘리지 않는 선 */
+    --pivot: 215%;            /* 회전 중심. 클수록 호가 완만해진다 */
+    --arc-drop: 38px;         /* 바깥 카드가 호를 따라 내려앉는 만큼. 안 띄우면 아래 문구와 겹친다 */
+
+    position: relative;
+    height: 244px;
+    margin: 12px 0 4px;
 }
 
 .card-back {
+    position: absolute;
+    left: 50%;
+    bottom: var(--arc-drop);
+    width: var(--card-width);
+    margin-left: calc(var(--card-width) / -2);
     aspect-ratio: 100 / 168;
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
@@ -252,9 +276,12 @@ input[type="date"]:focus, select:focus {
     background-color: #1b1f3c;
     padding: 0;
     cursor: pointer;
-    position: relative;
     overflow: hidden;
-    transition: transform 0.18s ease, border-color 0.18s ease;
+    transform-origin: 50% var(--pivot);
+    transform: rotate(0deg);          /* 펼치기 전에는 한 자리에 포개져 있다 */
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.2s ease,
+                box-shadow 0.2s ease;
 }
 
 .card-back::after {
@@ -264,24 +291,35 @@ input[type="date"]:focus, select:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.15rem;
     color: rgba(240, 217, 168, 0.5);
 }
 
-.card-back:hover:not(:disabled) { transform: translateY(-4px); border-color: var(--gold); }
+/* 펼친 상태 */
+.deck.spread .card-back { transform: rotate(var(--angle)); }
 
-.card-back.picked {
+.deck.spread .card-back:hover:not(:disabled):not(.picked) {
+    transform: rotate(var(--angle)) translateY(-16px);
     border-color: var(--gold);
-    transform: translateY(-6px);
-    box-shadow: 0 6px 20px rgba(217, 178, 106, 0.25);
+    z-index: 200;
 }
 
+.deck.spread .card-back.picked {
+    transform: rotate(var(--angle)) translateY(-34px);
+    border-color: var(--gold);
+    box-shadow: 0 8px 24px rgba(217, 178, 106, 0.3);
+    z-index: 300;
+}
+
+/* 펼치는 동안에는 순서대로 딜레이를 준다. 다 펴지면 draw.js 가 이 클래스를 뗀다 */
+.deck.dealing .card-back { transition-delay: var(--deal-delay); }
+
 .card-back:disabled { cursor: default; }
-.card-back.dimmed { opacity: 0.35; }
+.deck.spread .card-back.dimmed { opacity: 0.28; }
 
 .deck-status {
     text-align: center;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
     color: var(--text-dim);
     min-height: 1.7em;
 }
@@ -384,11 +422,26 @@ input[type="date"]:focus, select:focus {
 .doc ul { padding-left: 20px; }
 .doc li { margin-bottom: 6px; }
 
+/* 아주 좁은 화면. 회전한 카드는 제 폭보다 넓은 자리를 차지해서 각도를 더 줄여야 한다 */
+@media (max-width: 360px) {
+    .deck {
+        --card-width: 64px;
+        --spread: 56deg;
+        --arc-drop: 30px;
+        height: 216px;
+    }
+}
+
 /* --- 데스크톱 --- */
 
 @media (min-width: 640px) {
     h1 { font-size: 2.1rem; }
-    .deck { grid-template-columns: repeat(6, 1fr); }
+    .deck {
+        --card-width: 90px;
+        --spread: 96deg;
+        --arc-drop: 84px;
+        height: 330px;
+    }
     .btn-row { flex-direction: row; }
     .result-card img { width: 110px; flex-basis: 110px; }
 }

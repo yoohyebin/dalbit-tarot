@@ -70,13 +70,13 @@ class ViewControllerTest {
     }
 
     @Test
-    @DisplayName("뽑기 화면은 카드 뒷면을 12장 깔아 둔다")
+    @DisplayName("뽑기 화면은 카드 뒷면을 21장 깔아 둔다")
     void rendersDeck() throws Exception {
         mockMvc.perform(get("/reading/draw"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("reading/draw"))
                 .andExpect(content().string(org.hamcrest.Matchers.stringContainsInOrder(
-                        "card-back", "data-index=\"12\"")));
+                        "card-back", "data-index=\"21\"")));
     }
 
     @Test

@@ -11,7 +11,7 @@
     </section>
 
     <div class="deck" id="deck">
-        <button type="button" class="card-back" th:each="i : ${#numbers.sequence(1, 12)}"
+        <button type="button" class="card-back" th:each="i : ${#numbers.sequence(1, 21)}"
                 th:attr="data-index=${i}" th:aria-label="'카드 ' + ${i}"></button>
     </div>
 

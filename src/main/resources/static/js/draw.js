@@ -3,6 +3,9 @@
 
 const STORAGE_KEY = 'dalbit.reading';
 
+const DEAL_STEP_MS = 26;      // 카드 한 장씩 밀리는 간격
+const DEAL_DURATION_MS = 550; // CSS transition 길이와 맞춘다
+
 function start(reading) {
     const deck = document.getElementById('deck');
     const status = document.getElementById('deck-status');
@@ -12,6 +15,34 @@ function start(reading) {
     const cards = Array.from(deck.querySelectorAll('.card-back'));
     const picked = new Set();
     let submitting = false;
+
+    /* 부채꼴 배치. 가운데를 0도로 두고 좌우로 --spread 만큼 벌린다.
+       각도는 CSS 변수로 넘겨서 hover·선택 시 transform 에 그대로 얹을 수 있게 한다. */
+    function layOut() {
+        const spread = parseFloat(getComputedStyle(deck).getPropertyValue('--spread'));
+        const last = cards.length - 1;
+        cards.forEach((card, index) => {
+            const ratio = last === 0 ? 0.5 : index / last;
+            card.style.setProperty('--angle', `${(ratio - 0.5) * spread}deg`);
+            card.style.setProperty('--deal-delay', `${index * DEAL_STEP_MS}ms`);
+            card.style.zIndex = String(index + 1);
+        });
+    }
+
+    /* 포개진 상태에서 한 장씩 펼친다.
+       transition 이 걸리려면 시작 상태가 먼저 확정돼야 한다. offsetHeight 를 읽어
+       강제로 리플로우를 일으키는 방식은 동기라 확실하다. requestAnimationFrame 은
+       탭이 백그라운드거나 렌더링이 밀리면 늦게 불려서 펼쳐지지 않는 경우가 있었다. */
+    function deal() {
+        layOut();
+        deck.classList.add('dealing');
+        void deck.offsetHeight;
+        deck.classList.add('spread');
+        setTimeout(() => deck.classList.remove('dealing'),
+                DEAL_DURATION_MS + cards.length * DEAL_STEP_MS);
+    }
+
+    window.addEventListener('resize', layOut);
 
     function updateStatus() {
         const remaining = reading.cardCount - picked.size;
@@ -82,6 +113,7 @@ function start(reading) {
         });
     });
 
+    deal();
     updateStatus();
 }
 
