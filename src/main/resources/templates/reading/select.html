@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('관심 분야 선택')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: siteHeader}"></header>
+
+<main class="wrap">
+    <section class="fade-in">
+        <h1>무엇이 궁금하세요?</h1>
+        <p class="hint">한 가지를 골라 주세요.</p>
+    </section>
+
+    <section>
+        <div class="category-list">
+            <a class="category-item" th:each="category : ${categories}"
+               th:href="@{/reading/input(category=${category.code})}">
+                <span class="label" th:text="${category.label}">애정운</span>
+                <span class="desc" th:text="${category.description}">설명</span>
+            </a>
+        </div>
+    </section>
+</main>
+
+<footer th:replace="~{fragments/layout :: siteFooter}"></footer>
+</body>
+</html>

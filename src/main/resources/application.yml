@@ -50,3 +50,12 @@ dalbit:
     enabled: true
     capacity: 10
     window: 1m
+
+  retention:
+    period: 365d   # 개인정보처리방침의 '1년 후 자동 삭제' 와 맞춰야 한다
+    cron: "0 30 4 * * *"
+
+  privacy:
+    # 개인정보처리방침 페이지에 그대로 노출되는 값이다. 법적으로 연락이 닿아야 하는 정보라 숨기지 않는다
+    owner-name: 유혜빈
+    contact-email: hyebin218@naver.com

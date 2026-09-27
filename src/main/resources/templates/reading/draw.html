@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('카드 뽑기')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: siteHeader}"></header>
+
+<main class="wrap">
+    <section class="fade-in">
+        <h1 id="deck-title">카드를 골라 주세요</h1>
+        <p class="hint" id="deck-guide">마음이 가는 카드를 뒤집어 보세요.</p>
+    </section>
+
+    <div class="deck" id="deck">
+        <button type="button" class="card-back" th:each="i : ${#numbers.sequence(1, 12)}"
+                th:attr="data-index=${i}" th:aria-label="'카드 ' + ${i}"></button>
+    </div>
+
+    <p class="deck-status" id="deck-status"></p>
+
+    <div class="loading" id="loading" hidden>
+        <div class="moon-spinner"></div>
+        <p class="message">카드를 펼치고 있어요…</p>
+    </div>
+</main>
+
+<footer th:replace="~{fragments/layout :: siteFooter}"></footer>
+<script th:src="@{/js/draw.js}"></script>
+</body>
+</html>
