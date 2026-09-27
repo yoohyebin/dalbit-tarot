@@ -11,6 +11,7 @@ function start(reading) {
     const status = document.getElementById('deck-status');
     const guide = document.getElementById('deck-guide');
     const loading = document.getElementById('loading');
+    const confirmButton = document.getElementById('confirm');
 
     const cards = Array.from(deck.querySelectorAll('.card-back'));
     const picked = new Set();
@@ -46,19 +47,23 @@ function start(reading) {
 
     function updateStatus() {
         const remaining = reading.cardCount - picked.size;
-        status.textContent = remaining > 0 ? `${remaining}장 더 고르세요` : '카드를 펼칩니다…';
+        const ready = remaining === 0;
+        status.textContent = ready ? '다 골랐어요. 아래 버튼을 눌러 주세요' : `${remaining}장 더 고르세요`;
+        confirmButton.disabled = !ready;
     }
 
     function reset(message) {
         loading.hidden = true;
         guide.hidden = false;
-        status.textContent = message;
+        confirmButton.hidden = false;
         submitting = false;
         picked.clear();
         cards.forEach((card) => {
             card.disabled = false;
             card.classList.remove('picked', 'dimmed');
         });
+        updateStatus();
+        status.textContent = message;
     }
 
     async function submit() {
@@ -70,6 +75,7 @@ function start(reading) {
             }
         });
         guide.hidden = true;
+        confirmButton.hidden = true;
         loading.hidden = false;
 
         try {
@@ -99,18 +105,30 @@ function start(reading) {
 
     cards.forEach((card) => {
         card.addEventListener('click', () => {
-            if (submitting || picked.has(card)) {
+            if (submitting) {
+                return;
+            }
+            // 다시 누르면 선택을 푼다
+            if (picked.has(card)) {
+                picked.delete(card);
+                card.classList.remove('picked');
+                updateStatus();
+                return;
+            }
+            if (picked.size >= reading.cardCount) {
+                status.textContent = `${reading.cardCount}장까지만 고를 수 있어요`;
                 return;
             }
             picked.add(card);
             card.classList.add('picked');
             updateStatus();
-
-            if (picked.size === reading.cardCount) {
-                // 마지막 카드가 올라오는 게 보이도록 조금 기다린다
-                setTimeout(submit, 450);
-            }
         });
+    });
+
+    confirmButton.addEventListener('click', () => {
+        if (picked.size === reading.cardCount) {
+            submit();
+        }
     });
 
     deal();

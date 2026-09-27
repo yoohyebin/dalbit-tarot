@@ -251,14 +251,18 @@ input[type="date"]:focus, select:focus {
  * 내린 다음 각도만 달리 주면 호를 그리며 펼쳐진다. --angle 은 draw.js 가 넣는다.
  */
 .deck {
-    --card-width: 74px;
-    --spread: 64deg;          /* 부채 전체가 벌어지는 각도. 좁은 폰에서 잘리지 않는 선 */
-    --pivot: 215%;            /* 회전 중심. 클수록 호가 완만해진다 */
-    --arc-drop: 38px;         /* 바깥 카드가 호를 따라 내려앉는 만큼. 안 띄우면 아래 문구와 겹친다 */
+    --card-width: 68px;
+    --spread: 76deg;          /* 부채 전체가 벌어지는 각도 */
+    --pivot: 200%;            /* 회전 중심. 클수록 호가 완만해진다 */
+    --arc-drop: 40px;         /* 바깥 카드가 호를 따라 내려앉는 만큼. 안 띄우면 아래 문구와 겹친다 */
 
     position: relative;
-    height: 244px;
+    height: 236px;
     margin: 12px 0 4px;
+
+    /* 부채는 본문 여백을 넘어 화면 끝까지 쓴다. 폭이 좁으면 카드끼리 겹쳐서 집기 어렵다 */
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
 }
 
 .card-back {
@@ -268,12 +272,15 @@ input[type="date"]:focus, select:focus {
     width: var(--card-width);
     margin-left: calc(var(--card-width) / -2);
     aspect-ratio: 100 / 168;
-    border: 1px solid var(--line);
+    /* 겹쳐 있어도 장마다 경계가 읽히게 테두리를 밝히고 그림자로 층을 만든다.
+       경계가 흐리면 장수가 같아도 훨씬 빽빽해 보인다. */
+    border: 1px solid #3d4478;
     border-radius: var(--radius-sm);
     background:
         radial-gradient(circle at 50% 38%, rgba(217, 178, 106, 0.22) 0%, transparent 55%),
         linear-gradient(160deg, #232750 0%, #1b1f3c 100%);
     background-color: #1b1f3c;
+    box-shadow: -3px 0 8px rgba(0, 0, 0, 0.45);
     padding: 0;
     cursor: pointer;
     overflow: hidden;
@@ -425,10 +432,10 @@ input[type="date"]:focus, select:focus {
 /* 아주 좁은 화면. 회전한 카드는 제 폭보다 넓은 자리를 차지해서 각도를 더 줄여야 한다 */
 @media (max-width: 360px) {
     .deck {
-        --card-width: 64px;
-        --spread: 56deg;
-        --arc-drop: 30px;
-        height: 216px;
+        --card-width: 60px;
+        --spread: 70deg;
+        --arc-drop: 34px;
+        height: 208px;
     }
 }
 
@@ -437,10 +444,13 @@ input[type="date"]:focus, select:focus {
 @media (min-width: 640px) {
     h1 { font-size: 2.1rem; }
     .deck {
-        --card-width: 90px;
-        --spread: 96deg;
-        --arc-drop: 84px;
-        height: 330px;
+        --card-width: 84px;
+        --spread: 104deg;
+        --pivot: 205%;
+        --arc-drop: 88px;
+        height: 336px;
+        width: auto;
+        margin-left: 0;
     }
     .btn-row { flex-direction: row; }
     .result-card img { width: 110px; flex-basis: 110px; }
