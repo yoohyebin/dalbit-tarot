@@ -1,0 +1,43 @@
+# 운영 프로파일. SPRING_PROFILES_ACTIVE=prod 로 켠다.
+# 접속 정보와 API 키는 전부 환경변수로 받는다. 이 파일에 값을 적지 않는다.
+
+server:
+  # Nginx 뒤에 있으므로 X-Forwarded-* 를 신뢰한다.
+  # 이걸 켜지 않으면 getRemoteAddr() 가 전부 Nginx IP 로 잡혀,
+  # IP 단위 요청 제한이 사용자별이 아니라 서비스 전체에 걸린다.
+  # 반대로 프록시 없이 켜면 클라이언트가 헤더를 위조해 제한을 우회할 수 있다.
+  forward-headers-strategy: framework
+  shutdown: graceful
+
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+  datasource:
+    hikari:
+      # t3.micro 기준. LLM 호출은 트랜잭션 밖에 있어 커넥션을 오래 잡지 않는다
+      maximum-pool-size: 10
+      connection-timeout: 3000
+
+  thymeleaf:
+    cache: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+
+logging:
+  level:
+    root: warn
+    kr.dalbittarot: info
+  file:
+    name: /var/log/dalbit-tarot/application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 20MB
+      max-history: 14

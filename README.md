@@ -80,8 +80,20 @@ export GEMINI_API_KEY=발급받은_키
 - [x] 4. LLM 연동 (프롬프트, 호출, 후처리)
 - [x] 5. 화면 개발 (Thymeleaf, 반응형)
 - [x] 6. 테스트
-- [ ] 7. AWS 배포
+- [x] 7. AWS 배포 (배포 설정·CI/CD 구성 완료, 콘솔 작업 대기)
 - [ ] 8. 운영 및 모니터링
+
+## 배포
+
+EC2 한 대에 Docker Compose 로 앱·MySQL·Nginx 를 띄운다.
+`main` 에 머지하면 GitHub Actions 가 이미지를 만들고 EC2 에서 교체한다.
+
+절차와 운영 작업은 [docs/deployment.md](docs/deployment.md) 참고.
+
+```
+브라우저 → Nginx(80/443) → app(8080) → mysql(3306, 내부 전용)
+                                    ↘ Gemini API
+```
 
 ## 카드 이미지 출처
 
