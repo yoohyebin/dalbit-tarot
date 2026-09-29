@@ -53,7 +53,7 @@ class GeminiLlmClientTimeoutTest {
 
         String baseUrl = "http://127.0.0.1:" + server.getAddress().getPort();
         LlmProperties properties = new LlmProperties(
-                "test-key", "gemini-2.5-flash-lite", baseUrl, 700, 0.9, READ_TIMEOUT, 1);
+                "test-key", "gemini-3.5-flash-lite", baseUrl, 700, 0.9, READ_TIMEOUT, 1);
 
         JdkClientHttpRequestFactory factory = new JdkClientHttpRequestFactory(
                 HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build());
