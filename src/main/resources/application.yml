@@ -60,3 +60,9 @@ dalbit:
     # 개인정보처리방침 페이지에 그대로 노출되는 값이다. 법적으로 연락이 닿아야 하는 정보라 숨기지 않는다
     owner-name: 유혜빈
     contact-email: hyebin218@naver.com
+
+  admin:
+    # 관리자 화면(/admin) 로그인. 소스에 기본값을 두지 않는다.
+    # 비워 두면 기동할 때마다 무작위 비밀번호를 만들어 로그에 찍는다.
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:}

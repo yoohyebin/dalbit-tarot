@@ -18,6 +18,11 @@ public class HomeController {
         return "index";
     }
 
+    @GetMapping("/feedback")
+    public String feedback() {
+        return "feedback";
+    }
+
     @GetMapping("/privacy")
     public String privacy(Model model) {
         model.addAttribute("privacy", privacyProperties);

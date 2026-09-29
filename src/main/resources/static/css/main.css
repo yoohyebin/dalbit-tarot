@@ -190,6 +190,39 @@ section { margin-bottom: 32px; }
     color: var(--text-dim);
 }
 
+textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    color: var(--text);
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.7;
+    resize: vertical;
+}
+
+textarea:focus { outline: none; border-color: var(--gold); }
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 15px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    color: var(--text);
+    font: inherit;
+    font-size: 1rem;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+input::placeholder, textarea::placeholder { color: #6b6b88; }
+
 input[type="date"], select {
     width: 100%;
     /* 이게 없으면 네이티브 달력 아이콘과 팝업이 밝은 테마로 떠서 어두운 배경에 묻힌다 */
@@ -452,6 +485,40 @@ input[type="date"]:focus, select:focus {
 @keyframes fade-in {
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: none; }
+}
+
+/* --- 받은 의견 --- */
+
+.feedback-list { display: flex; flex-direction: column; gap: 12px; }
+
+.feedback-item {
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+}
+
+.feedback-item .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.feedback-item .nickname {
+    font-family: var(--serif);
+    font-weight: 600;
+    color: var(--gold-soft);
+}
+
+.feedback-item .date { font-size: 0.76rem; color: var(--text-dim); }
+
+.feedback-item .body {
+    margin: 0;
+    font-size: 0.94rem;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 /* --- 처리방침 --- */
