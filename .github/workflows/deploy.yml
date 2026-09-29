@@ -7,6 +7,11 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# 배포가 겹치면 보안그룹 임시 규칙과 서버의 .env 수정이 서로 엉킨다. 한 번에 하나씩 돌린다
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository }}
 
@@ -95,11 +100,32 @@ jobs:
   deploy:
     needs: image
     runs-on: ubuntu-latest
-    # 서버가 GITHUB_TOKEN 으로 GHCR 에서 이미지를 받는다.
-    # 저장소 기본 권한 설정에 기대지 않고 명시한다
     permissions:
+      # 서버가 GITHUB_TOKEN 으로 GHCR 에서 이미지를 받는다.
+      # 저장소 기본 권한 설정에 기대지 않고 명시한다
       packages: read
+      # AWS 역할을 OIDC 로 받는다. 액세스 키를 Secrets 에 두지 않기 위해서다
+      id-token: write
     steps:
+      # 보안그룹의 22번은 평소 관리자 IP 만 열려 있다. GitHub 러너 IP 는 매번 바뀌고
+      # 대역이 너무 넓어 미리 등록할 수 없으므로, 배포하는 동안만 이번 러너 IP 하나를 연다
+      - name: AWS 자격 증명
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: 러너 IP 확인
+        id: runner
+        run: echo "ip=$(curl -fsS https://checkip.amazonaws.com)" >> "$GITHUB_OUTPUT"
+
+      - name: 보안그룹에 러너 IP 임시 허용
+        id: allow
+        run: |
+          aws ec2 authorize-security-group-ingress \
+            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+            --ip-permissions "IpProtocol=tcp,FromPort=22,ToPort=22,IpRanges=[{CidrIp=${{ steps.runner.outputs.ip }}/32,Description=github-actions-deploy}]"
+
       - name: EC2 에 배포
         uses: appleboy/ssh-action@v1
         with:
@@ -131,3 +157,12 @@ jobs:
             echo "헬스체크 실패. 최근 로그:"
             docker compose -f compose.prod.yaml logs --tail 50 app
             exit 1
+
+      # 배포가 실패하거나 취소돼도 반드시 닫는다. 허용 단계가 성공했을 때만 돈다
+      - name: 보안그룹 임시 규칙 삭제
+        if: always() && steps.allow.outcome == 'success'
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 \
+            --cidr "${{ steps.runner.outputs.ip }}/32"
