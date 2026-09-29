@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('받은 의견')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: siteHeader}"></header>
+
+<main class="wrap">
+    <section class="fade-in">
+        <h1>받은 의견</h1>
+        <p class="hint">
+            전체 <span th:text="${feedbacks.totalElements}">0</span>건
+            · <span th:text="${feedbacks.number + 1}">1</span>
+            / <span th:text="${feedbacks.totalPages == 0 ? 1 : feedbacks.totalPages}">1</span> 쪽
+        </p>
+    </section>
+
+    <section th:if="${feedbacks.empty}">
+        <div class="notice">아직 받은 의견이 없습니다.</div>
+    </section>
+
+    <section class="feedback-list" th:unless="${feedbacks.empty}">
+        <article class="feedback-item" th:each="item : ${feedbacks.content}">
+            <div class="meta">
+                <span class="nickname" th:text="${item.nickname}">익명</span>
+                <span class="date" th:text="${#temporals.format(item.createdAt, 'yyyy-MM-dd HH:mm')}">날짜</span>
+            </div>
+            <p class="body" th:text="${item.content}">내용</p>
+        </article>
+    </section>
+
+    <section class="btn-row" th:unless="${feedbacks.totalPages <= 1}">
+        <a class="btn btn-ghost" th:if="${feedbacks.hasPrevious()}"
+           th:href="@{/admin/feedback(page=${feedbacks.number - 1})}">이전</a>
+        <a class="btn btn-ghost" th:if="${feedbacks.hasNext()}"
+           th:href="@{/admin/feedback(page=${feedbacks.number + 1})}">다음</a>
+    </section>
+
+    <form method="post" th:action="@{/admin/logout}">
+        <button type="submit" class="btn btn-ghost">로그아웃</button>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: siteFooter}"></footer>
+</body>
+</html>

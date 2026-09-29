@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('관리자 로그인')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: siteHeader}"></header>
+
+<main class="wrap">
+    <section class="fade-in">
+        <h1>관리자 로그인</h1>
+    </section>
+
+    <div class="notice" th:if="${param.error}" style="border-color: var(--danger); color: var(--danger);">
+        아이디 또는 비밀번호가 맞지 않습니다.
+    </div>
+
+    <form method="post" th:action="@{/admin/login}" autocomplete="off">
+        <div class="field">
+            <label for="username">아이디</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="field">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <div class="btn-row">
+            <button type="submit" class="btn btn-primary">로그인</button>
+        </div>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: siteFooter}"></footer>
+</body>
+</html>
