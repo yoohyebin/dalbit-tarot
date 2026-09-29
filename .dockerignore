@@ -1,8 +1,11 @@
 .git
 .github
 .gradle
-build
 _workspace
 *.md
 .claude
 .idea
+
+# 이미지는 CI 가 빌드한 jar 을 복사만 한다. build/ 에서 jar 만 남기고 나머지는 뺀다
+build/*
+!build/libs
