@@ -95,6 +95,10 @@ jobs:
   deploy:
     needs: image
     runs-on: ubuntu-latest
+    # 서버가 GITHUB_TOKEN 으로 GHCR 에서 이미지를 받는다.
+    # 저장소 기본 권한 설정에 기대지 않고 명시한다
+    permissions:
+      packages: read
     steps:
       - name: EC2 에 배포
         uses: appleboy/ssh-action@v1

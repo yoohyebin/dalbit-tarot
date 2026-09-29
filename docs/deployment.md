@@ -44,6 +44,21 @@ sudo dnf install -y docker git
 sudo systemctl enable --now docker
 sudo usermod -aG docker ec2-user      # 재접속해야 적용된다
 
+# Amazon Linux 2023 의 docker 패키지에는 compose 플러그인이 없다. 따로 받는다
+sudo mkdir -p /usr/local/lib/docker/cli-plugins
+sudo curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+docker compose version                # 버전이 나오면 된다
+
+# t3.micro 는 메모리가 1GB 라 MySQL 과 JVM 을 같이 올리면 모자란다. 스왑 2GB 를 잡는다
+sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile swap swap defaults 0 0' | sudo tee -a /etc/fstab
+free -h                               # Swap 줄에 2.0G 가 보이면 된다
+
 mkdir -p ~/dalbit-tarot/{nginx,certbot/conf,certbot/www,backup}
 ```
 
