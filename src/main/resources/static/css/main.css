@@ -1,0 +1,558 @@
+/* 달빛타로 — 모바일 우선 */
+
+:root {
+    --bg: #0e1020;
+    --bg-soft: #171a30;
+    --bg-card: #1e2240;
+    --line: #2c3158;
+    --text: #e8e6f0;
+    --text-dim: #9a9ab8;
+    --gold: #d9b26a;
+    --gold-soft: #f0d9a8;
+    --danger: #e0767b;
+
+    --serif: 'Noto Serif KR', 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+
+    --radius: 14px;
+    --radius-sm: 8px;
+    --gutter: 16px;
+    --max-width: 560px;
+}
+
+* { box-sizing: border-box; }
+
+/* .btn 등의 display 선언이 브라우저 기본 [hidden] 규칙을 덮어써서
+   hidden 속성이 먹지 않는다. 명시도가 같고 이 파일이 나중에 로드되기 때문. */
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+        radial-gradient(900px 500px at 50% -8%, #262a4d 0%, transparent 70%),
+        var(--bg);
+    color: var(--text);
+    font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif;
+    line-height: 1.7;
+    letter-spacing: -0.01em;
+    display: flex;
+    flex-direction: column;
+}
+
+h1, h2, h3 {
+    font-family: var(--serif);
+    font-weight: 600;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+    margin: 0 0 12px;
+}
+
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.3rem; }
+
+p { margin: 0 0 12px; }
+
+a { color: var(--gold-soft); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* --- 레이아웃 --- */
+
+.wrap {
+    width: 100%;
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding: 0 var(--gutter);
+    flex: 1;
+}
+
+.site-header {
+    padding: 52px var(--gutter) 28px;
+    text-align: center;
+}
+
+.site-header .logo {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+}
+
+.wrap > section:first-of-type { margin-top: 8px; }
+
+.site-footer {
+    margin-top: 48px;
+    padding: 24px var(--gutter) 32px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.site-footer a { color: var(--text-dim); text-decoration: underline; }
+
+section { margin-bottom: 32px; }
+
+/* --- 안내 문구 --- */
+
+.notice {
+    margin: 20px 0;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+}
+
+.hint { font-size: 0.82rem; color: var(--text-dim); }
+
+/* --- 버튼 --- */
+
+.btn {
+    display: block;
+    width: 100%;
+    padding: 15px 20px;
+    border: 1px solid var(--gold);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--gold-soft);
+    font: inherit;
+    font-size: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn:hover { background: rgba(217, 178, 106, 0.1); text-decoration: none; }
+
+.btn-primary {
+    background: var(--gold);
+    color: #1a1505;
+    font-weight: 600;
+}
+
+.btn-primary:hover { background: var(--gold-soft); }
+
+.btn-ghost { border-color: var(--line); color: var(--text-dim); }
+.btn-ghost:hover { background: rgba(255, 255, 255, 0.03); }
+
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-row { display: flex; flex-direction: column; gap: 10px; }
+
+/* --- 카테고리 목록 --- */
+
+.category-list { display: flex; flex-direction: column; gap: 10px; }
+
+.category-item {
+    display: block;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.category-item:hover {
+    border-color: var(--gold);
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+.category-item .label {
+    display: block;
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    color: var(--gold-soft);
+    margin-bottom: 2px;
+}
+
+.category-item .desc { font-size: 0.85rem; color: var(--text-dim); }
+
+/* --- 폼 --- */
+
+.field { margin-bottom: 24px; }
+
+.field > label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: var(--text);
+}
+
+.field .optional {
+    margin-left: 6px;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    color: var(--text);
+    font: inherit;
+    font-size: 1rem;
+    line-height: 1.7;
+    resize: vertical;
+}
+
+textarea:focus { outline: none; border-color: var(--gold); }
+
+input[type="text"], input[type="password"] {
+    width: 100%;
+    padding: 15px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    color: var(--text);
+    font: inherit;
+    font-size: 1rem;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+input::placeholder, textarea::placeholder { color: #6b6b88; }
+
+input[type="date"], select {
+    width: 100%;
+    /* 이게 없으면 네이티브 달력 아이콘과 팝업이 밝은 테마로 떠서 어두운 배경에 묻힌다 */
+    color-scheme: dark;
+    padding: 17px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    color: var(--text);
+    font: inherit;
+    font-size: 1.05rem;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    opacity: 0.85;
+}
+
+input[type="date"]:focus, select:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+.choice-group { display: flex; gap: 8px; }
+
+.choice {
+    flex: 1;
+    position: relative;
+}
+
+.choice input { position: absolute; opacity: 0; pointer-events: none; }
+
+.choice span {
+    display: block;
+    padding: 13px 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-soft);
+    text-align: center;
+    font-size: 0.92rem;
+    cursor: pointer;
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.choice input:checked + span {
+    border-color: var(--gold);
+    color: var(--gold-soft);
+    background: rgba(217, 178, 106, 0.08);
+}
+
+.choice input:focus-visible + span { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* --- 카드 뒷면 (뽑기 화면) --- */
+
+/*
+ * 카드를 부채꼴로 편다. 각 카드를 같은 자리에 겹쳐 두고, 회전 중심을 카드 아래쪽 바깥으로
+ * 내린 다음 각도만 달리 주면 호를 그리며 펼쳐진다. --angle 은 draw.js 가 넣는다.
+ */
+.deck {
+    --card-width: 58px;
+    --spread: 88deg;          /* 부채 전체가 벌어지는 각도 */
+    --pivot: 240%;            /* 회전 중심. 클수록 호가 완만해진다 */
+    --arc-drop: 52px;         /* 바깥 카드가 호를 따라 내려앉는 만큼. 안 띄우면 아래 문구와 겹친다 */
+
+    position: relative;
+    height: 226px;
+    margin: 4px 0 2px;
+
+    /* 부채는 본문 여백을 넘어 화면 끝까지 쓴다. 회전한 카드가 제 폭보다 넓은 자리를
+       차지하므로, 여백을 조금만 남겨도 부채가 눈에 띄게 좁아진다 */
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+}
+
+.card-back {
+    position: absolute;
+    left: 50%;
+    bottom: var(--arc-drop);
+    width: var(--card-width);
+    margin-left: calc(var(--card-width) / -2);
+    aspect-ratio: 100 / 168;
+    /* 겹쳐 있어도 장마다 경계가 읽히게 테두리를 밝히고 그림자로 층을 만든다.
+       경계가 흐리면 장수가 같아도 훨씬 빽빽해 보인다. */
+    border: 1px solid #3d4478;
+    border-radius: var(--radius-sm);
+    background:
+        radial-gradient(circle at 50% 38%, rgba(217, 178, 106, 0.22) 0%, transparent 55%),
+        linear-gradient(160deg, #232750 0%, #1b1f3c 100%);
+    background-color: #1b1f3c;
+    box-shadow: -3px 0 8px rgba(0, 0, 0, 0.45);
+    padding: 0;
+    cursor: pointer;
+    overflow: hidden;
+    z-index: var(--z, 1);             /* draw.js 가 부채 순서대로 넣는다 */
+    transform-origin: 50% var(--pivot);
+    transform: rotate(0deg);          /* 펼치기 전에는 한 자리에 포개져 있다 */
+    /* 고르고 푸는 건 즉각적이어야 한다. 펼침 애니메이션 길이를 그대로 쓰면 굼떠 보인다 */
+    transition: transform 0.16s ease-out,
+                border-color 0.12s ease-out,
+                box-shadow 0.12s ease-out;
+}
+
+.card-back::after {
+    content: "☾";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    color: rgba(240, 217, 168, 0.5);
+}
+
+/* 펼친 상태 */
+.deck.spread .card-back { transform: rotate(var(--angle)); }
+
+/*
+ * hover 로는 카드를 들어올리지 않는다. 테두리만 밝힌다.
+ * 들어올리면 선택을 푼 직후 커서가 그대로 카드 위에 있어서
+ * -34px → -12px 로 멈췄다가 마우스를 치워야 부채로 돌아간다. 두 단계로 움직여 어색하다.
+ * 터치 기기는 탭한 뒤에도 hover 가 남으므로 (hover: hover) 로 막아 둔다.
+ */
+@media (hover: hover) and (pointer: fine) {
+    .deck.spread .card-back:hover:not(:disabled):not(.picked) {
+        border-color: rgba(217, 178, 106, 0.55);
+        z-index: 200;
+    }
+}
+
+/* 선택을 푼 직후. z-index 는 전환되지 않아서 그냥 두면 내려가는 도중에
+   이웃 카드 뒤로 숨어 버린다. 애니메이션이 끝날 때까지만 앞에 둔다 */
+.deck.spread .card-back.returning { z-index: 250; }
+
+.deck.spread .card-back.picked {
+    transform: rotate(var(--angle)) translateY(-34px);
+    border-color: var(--gold);
+    box-shadow: 0 8px 24px rgba(217, 178, 106, 0.3);
+    z-index: 300;
+}
+
+/* 펼칠 때만 느린 전환에 순서대로 딜레이를 준다. 다 펴지면 draw.js 가 이 클래스를 뗀다 */
+.deck.dealing .card-back {
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--deal-delay);
+}
+
+.card-back:disabled { cursor: default; }
+.deck.spread .card-back.dimmed { opacity: 0.28; }
+
+.deck-status {
+    text-align: center;
+    font-size: 0.92rem;
+    color: var(--text-dim);
+    min-height: 1.7em;
+}
+
+/* 뽑기 완료. 카드에서 눈이 떠나지 않게 작게 둔다 */
+.deck-confirm { text-align: center; margin-top: 4px; }
+
+.deck-confirm .btn {
+    display: inline-block;
+    width: auto;
+    min-width: 132px;
+    padding: 10px 26px;
+    font-size: 0.92rem;
+}
+
+/* 배경 없이 테두리와 글자만. hover 에서도 채우지 않는다 */
+.deck-confirm .btn:hover:not(:disabled) {
+    background: transparent;
+    border-color: var(--gold-soft);
+    color: #fff;
+}
+
+/* --- 결과 카드 --- */
+
+.result-cards { display: flex; flex-direction: column; gap: 20px; margin: 24px 0; }
+
+.result-card {
+    display: flex;
+    gap: 14px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-card);
+}
+
+.result-card img {
+    width: 88px;
+    flex: 0 0 88px;
+    border-radius: var(--radius-sm);
+    background: #fff;
+}
+
+.result-card img.reversed { transform: rotate(180deg); }
+
+.result-card .meta { min-width: 0; }
+
+.result-card .position {
+    font-size: 0.74rem;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+}
+
+.result-card .name {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    margin: 2px 0;
+}
+
+.result-card .name-en { font-size: 0.78rem; color: var(--text-dim); }
+
+.result-card .orientation {
+    display: inline-block;
+    margin: 6px 0;
+    padding: 1px 8px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+}
+
+.result-card .meaning { font-size: 0.86rem; color: var(--text-dim); margin: 0; }
+
+/* --- 해석 --- */
+
+.interpretation {
+    padding: 20px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+    white-space: pre-wrap;
+    font-size: 0.98rem;
+}
+
+.interpretation.is-error { border-color: var(--danger); color: var(--danger); }
+
+/* --- 로딩 --- */
+
+.loading { text-align: center; padding: 28px 0; }
+
+.moon-spinner {
+    width: 34px;
+    height: 34px;
+    margin: 0 auto 14px;
+    border: 2px solid var(--line);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading .message { font-size: 0.9rem; color: var(--text-dim); }
+
+.fade-in { animation: fade-in 0.5s ease both; }
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* --- 받은 의견 --- */
+
+.feedback-list { display: flex; flex-direction: column; gap: 12px; }
+
+.feedback-item {
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+}
+
+.feedback-item .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.feedback-item .nickname {
+    font-family: var(--serif);
+    font-weight: 600;
+    color: var(--gold-soft);
+}
+
+.feedback-item .date { font-size: 0.76rem; color: var(--text-dim); }
+
+.feedback-item .body {
+    margin: 0;
+    font-size: 0.94rem;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* --- 처리방침 --- */
+
+.doc { font-size: 0.92rem; }
+.doc h2 { margin-top: 28px; font-size: 1.05rem; }
+.doc table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.86rem; }
+.doc th, .doc td { padding: 8px 10px; border: 1px solid var(--line); text-align: left; }
+.doc th { background: var(--bg-soft); color: var(--gold-soft); font-weight: 600; }
+.doc ul { padding-left: 20px; }
+.doc li { margin-bottom: 6px; }
+
+/* 아주 좁은 화면. 회전한 카드는 제 폭보다 넓은 자리를 차지해서 각도를 더 줄여야 한다 */
+@media (max-width: 360px) {
+    .deck {
+        --card-width: 52px;
+        --spread: 82deg;
+        --arc-drop: 44px;
+        height: 200px;
+    }
+}
+
+/* --- 데스크톱 --- */
+
+@media (min-width: 640px) {
+    h1 { font-size: 2.1rem; }
+    /* 데스크톱에서도 본문 폭에 가두지 않는다. 부채만 넓게 쓴다 */
+    .deck {
+        --card-width: 96px;
+        --spread: 100deg;
+        --pivot: 235%;
+        --arc-drop: 104px;
+        height: 372px;
+    }
+    .btn-row { flex-direction: row; }
+    .result-card img { width: 110px; flex-basis: 110px; }
+}

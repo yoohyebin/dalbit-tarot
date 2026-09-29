@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head(pageTitle)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="카드를 뽑으면 관심 분야에 맞춰 해석을 보여주는 무료 타로 서비스입니다.">
+    <title th:text="${pageTitle} != null ? ${pageTitle} + ' · 달빛타로' : '달빛타로'">달빛타로</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@600&amp;display=swap">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+
+<body>
+<header th:fragment="siteHeader" class="site-header">
+    <a class="logo" th:href="@{/}">☾ 달빛타로</a>
+</header>
+
+<footer th:fragment="siteFooter" class="site-footer">
+    <p>해석 결과는 참고용 콘텐츠입니다. 의료·법률·투자 등의 판단 근거로 삼지 마세요.</p>
+    <p><a th:href="@{/feedback}">의견 보내기</a> · <a th:href="@{/privacy}">개인정보처리방침</a></p>
+</footer>
+</body>
+</html>

@@ -3,9 +3,10 @@ spring:
     name: dalbit-tarot
 
   datasource:
-    url: jdbc:mysql://localhost:3307/dalbit_tarot?characterEncoding=UTF-8&serverTimezone=Asia/Seoul
-    username: dalbit
-    password: dalbit
+    # 기본값은 로컬 docker compose. CI·운영은 환경변수로 덮는다
+    url: ${DB_URL:jdbc:mysql://localhost:3307/dalbit_tarot?characterEncoding=UTF-8&serverTimezone=Asia/Seoul}
+    username: ${DB_USERNAME:dalbit}
+    password: ${DB_PASSWORD:dalbit}
 
   jpa:
     hibernate:
@@ -34,3 +35,36 @@ management:
 logging:
   level:
     kr.dalbittarot: DEBUG
+
+dalbit:
+  llm:
+    # 키가 비어 있으면 StubLlmClient 로 뜬다. 실제 해석을 보려면 GEMINI_API_KEY 를 넣는다
+    api-key: ${GEMINI_API_KEY:}
+    # 2.5 계열은 예전에 쓰던 계정에만 열려 있어 새 키로는 404 가 난다.
+    # 3.1-flash-lite 가 조금 싸지만 2027-05-07 에 종료된다. 가격은 2026-09 기준 입력 $0.30 / 출력 $2.50 (100만 토큰)
+    model: gemini-3.5-flash-lite
+    base-url: https://generativelanguage.googleapis.com/v1beta
+    max-output-tokens: 700         # 비용이 출력 토큰에 붙으므로 상한을 둔다
+    temperature: 0.9               # 같은 카드라도 문장이 조금씩 달라지게
+    timeout: 20s
+    max-retries: 1
+
+  rate-limit:
+    enabled: true
+    capacity: 10
+    window: 1m
+
+  retention:
+    period: 365d   # 개인정보처리방침의 '1년 후 자동 삭제' 와 맞춰야 한다
+    cron: "0 30 4 * * *"
+
+  privacy:
+    # 개인정보처리방침 페이지에 그대로 노출되는 값이다. 법적으로 연락이 닿아야 하는 정보라 숨기지 않는다
+    owner-name: 유혜빈
+    contact-email: hyebin218@naver.com
+
+  admin:
+    # 관리자 화면(/admin) 로그인. 소스에 기본값을 두지 않는다.
+    # 비워 두면 기동할 때마다 무작위 비밀번호를 만들어 로그에 찍는다.
+    username: ${ADMIN_USERNAME:admin}
+    password: ${ADMIN_PASSWORD:}
