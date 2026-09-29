@@ -49,6 +49,12 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
+// 실행 가능한 bootJar 만 만든다. plain jar 은 쓰지 않는데 10MB 를 더 차지하고,
+// Dockerfile 의 COPY 글롭이 두 파일에 걸려 모호해진다
+tasks.named('jar') {
+	enabled = false
+}
+
 jacoco {
 	toolVersion = '0.8.13'
 }
