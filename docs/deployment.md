@@ -36,6 +36,10 @@ GitHub Actions 가 `main` 푸시를 받아 이미지를 만들고 EC2 에서 교
 
 MySQL 3306 은 열지 않는다. 컨테이너 내부 네트워크로만 통신한다.
 
+GitHub Actions 는 배포하는 동안만 러너 IP 하나를 22번에 추가했다가 끝나면 지운다(4장).
+배포 중에 보안그룹을 보면 설명이 `github-actions-deploy` 인 규칙이 잠깐 보이는 게 정상이다.
+배포가 끝났는데도 남아 있으면 삭제 단계가 실패한 것이니 직접 지운다.
+
 ## 3. 서버 준비 (직접, SSH 접속 후)
 
 ```bash
@@ -93,8 +97,77 @@ HTTPS 를 붙이기 전까지 `/admin` 로그인은 비밀번호가 평문으로
 | `EC2_HOST` | EC2 퍼블릭 IP 또는 도메인 |
 | `EC2_USER` | `ec2-user` |
 | `EC2_SSH_KEY` | `.pem` 파일 **전체 내용** |
+| `EC2_SECURITY_GROUP_ID` | EC2 에 붙은 보안그룹 ID (`sg-` 로 시작) |
+| `AWS_REGION` | EC2 가 있는 리전 (서울이면 `ap-northeast-2`) |
+| `AWS_DEPLOY_ROLE_ARN` | 아래에서 만드는 IAM 역할의 ARN |
 
 이미지 레지스트리는 GHCR 을 쓰며 `GITHUB_TOKEN` 이 자동으로 주어진다. 따로 설정할 것이 없다.
+
+### 배포용 IAM 역할 (OIDC)
+
+워크플로가 보안그룹 규칙을 추가·삭제하려면 AWS 권한이 필요하다. 액세스 키를 Secrets 에
+넣지 않고, GitHub 이 발급하는 OIDC 토큰으로 역할을 받는다. 오래 살아 있는 키가 남지 않는다.
+
+**1) ID 제공업체 추가** — IAM → 액세스 관리 → ID 제공업체 → 공급자 추가 (영문 콘솔은 Identity providers)
+
+| 항목 | 값 |
+|---|---|
+| 공급자 유형 | OpenID Connect |
+| 공급자 URL | `https://token.actions.githubusercontent.com` |
+| 대상 | `sts.amazonaws.com` |
+
+**2) 역할 생성** — IAM → 역할 → 역할 생성 → 사용자 지정 신뢰 정책. `<계정ID>` 는 콘솔 오른쪽 위 계정 메뉴에 있는 12자리 숫자다.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "arn:aws:iam::<계정ID>:oidc-provider/token.actions.githubusercontent.com"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": [
+            "repo:yoohyebin@55949986/dalbit-tarot@*:ref:refs/heads/main",
+            "repo:yoohyebin@55949986/dalbit-tarot@*:ref:refs/heads/develop"
+          ]
+        }
+      }
+    }
+  ]
+}
+```
+
+`sub` 형식이 `repo:소유자/저장소:...` 가 아닌 이유: 2026-07-15 이후에 만든 저장소는 GitHub 이
+소유자·저장소의 숫자 ID 를 붙인 형식으로 토큰을 발급한다. 이 저장소는 2026-09 에 만들었다.
+`55949986` 은 `yoohyebin` 계정의 ID 로, 계정 이름이 나중에 다른 사람에게 넘어가도 이 역할을
+받지 못하게 막는다. main(자동 배포)과 develop(수동 배포)에서만 역할을 받을 수 있다.
+
+**3) 권한 정책** — 역할에 인라인 정책으로 붙인다. 이 보안그룹 하나의 규칙 추가·삭제만 허용한다.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:RevokeSecurityGroupIngress"
+      ],
+      "Resource": "arn:aws:ec2:<리전>:<계정ID>:security-group/<보안그룹ID>"
+    }
+  ]
+}
+```
+
+역할 이름은 `dalbit-tarot-deploy` 처럼 짓고, 만든 뒤 요약 화면의 ARN 을 `AWS_DEPLOY_ROLE_ARN` 에 넣는다.
 
 ## 5. 첫 배포
 
