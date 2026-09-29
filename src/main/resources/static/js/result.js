@@ -87,9 +87,57 @@ retryButton?.addEventListener('click', requestInterpretation);
 
 /* --- 공유 --- */
 
+/* 미리보기 값은 서버가 만든다. og 태그와 같은 값을 써서 어느 경로로 공유해도 똑같이 보이게 한다 */
+const share = {
+    title: script.dataset.shareTitle || '달빛타로 결과',
+    description: script.dataset.shareDescription || '',
+    url: script.dataset.shareUrl || location.href,
+    imageUrl: script.dataset.shareImage,
+    imageWidth: Number(script.dataset.shareImageWidth),
+    imageHeight: Number(script.dataset.shareImageHeight),
+};
+const kakaoKey = script.dataset.kakaoKey;
+
+/* SDK 는 async 로 불러온다. 페이지를 열자마자 누르면 아직 없을 수 있어 누를 때 확인한다 */
+function kakaoReady() {
+    if (!kakaoKey || !window.Kakao) {
+        return false;
+    }
+    if (!Kakao.isInitialized()) {
+        Kakao.init(kakaoKey);
+    }
+    return Kakao.isInitialized();
+}
+
+function shareToKakao() {
+    const link = { mobileWebUrl: share.url, webUrl: share.url };
+    const result = Kakao.Share.sendDefault({
+        objectType: 'feed',
+        content: {
+            title: share.title,
+            description: share.description,
+            imageUrl: share.imageUrl,
+            imageWidth: share.imageWidth,
+            imageHeight: share.imageHeight,
+            link,
+        },
+        buttons: [{ title: '결과 보기', link }],
+    });
+    result?.catch?.((error) => console.warn('카카오톡 공유 실패', error));
+}
+
 shareButton.addEventListener('click', async () => {
-    const url = location.href;
-    const title = '달빛타로 결과';
+    if (kakaoReady()) {
+        try {
+            shareToKakao();
+            return;
+        } catch (error) {
+            // SDK 가 던지면 아래의 기존 공유 방식으로 넘어간다
+            console.warn('카카오톡 공유 실패', error);
+        }
+    }
+
+    const { title, url } = share;
 
     if (navigator.share) {
         try {
