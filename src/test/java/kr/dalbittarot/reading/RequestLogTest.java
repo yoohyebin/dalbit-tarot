@@ -14,7 +14,7 @@ class RequestLogTest {
     @Test
     @DisplayName("성공 이력은 오류 메시지 없이 남는다")
     void recordsSuccessWithoutErrorMessage() {
-        RequestLog log = RequestLog.success(1L, LocalDateTime.now(), 820, "gemini-2.5-flash-lite");
+        RequestLog log = RequestLog.success(1L, LocalDateTime.now(), 820, "gemini-3.5-flash-lite");
 
         assertThat(log.getStatus()).isEqualTo(LlmCallStatus.SUCCESS);
         assertThat(log.getErrorMessage()).isNull();
@@ -27,7 +27,7 @@ class RequestLogTest {
         String tooLong = "오".repeat(ERROR_MESSAGE_COLUMN_LENGTH + 200);
 
         RequestLog log = RequestLog.failure(1L, LocalDateTime.now(), null,
-                "gemini-2.5-flash-lite", LlmCallStatus.ERROR, tooLong);
+                "gemini-3.5-flash-lite", LlmCallStatus.ERROR, tooLong);
 
         assertThat(log.getErrorMessage())
                 .as("자르지 않으면 INSERT 가 실패해 이력 자체가 안 남는다")
@@ -38,7 +38,7 @@ class RequestLogTest {
     @DisplayName("컬럼 길이 이내면 그대로 둔다")
     void keepsShortErrorMessage() {
         RequestLog log = RequestLog.failure(1L, LocalDateTime.now(), 300,
-                "gemini-2.5-flash-lite", LlmCallStatus.TIMEOUT, "응답 시간 초과");
+                "gemini-3.5-flash-lite", LlmCallStatus.TIMEOUT, "응답 시간 초과");
 
         assertThat(log.getErrorMessage()).isEqualTo("응답 시간 초과");
         assertThat(log.getStatus()).isEqualTo(LlmCallStatus.TIMEOUT);
@@ -48,7 +48,7 @@ class RequestLogTest {
     @DisplayName("오류 메시지가 없어도 이력은 남는다")
     void allowsNullErrorMessage() {
         RequestLog log = RequestLog.failure(1L, LocalDateTime.now(), null,
-                "gemini-2.5-flash-lite", LlmCallStatus.ERROR, null);
+                "gemini-3.5-flash-lite", LlmCallStatus.ERROR, null);
 
         assertThat(log.getErrorMessage()).isNull();
     }

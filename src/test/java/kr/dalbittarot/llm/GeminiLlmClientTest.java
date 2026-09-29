@@ -27,13 +27,13 @@ class GeminiLlmClientTest {
         RestClient.Builder builder = RestClient.builder().baseUrl("https://llm.test/v1beta");
         server = MockRestServiceServer.bindTo(builder).build();
         LlmProperties properties = new LlmProperties(
-                API_KEY, "gemini-2.5-flash-lite", "https://llm.test/v1beta",
+                API_KEY, "gemini-3.5-flash-lite", "https://llm.test/v1beta",
                 700, 0.9, Duration.ofSeconds(20), 1);
         client = new GeminiLlmClient(builder.build(), properties);
     }
 
     private void respondWith(String body) {
-        server.expect(requestTo("https://llm.test/v1beta/models/gemini-2.5-flash-lite:generateContent"))
+        server.expect(requestTo("https://llm.test/v1beta/models/gemini-3.5-flash-lite:generateContent"))
                 .andExpect(method(org.springframework.http.HttpMethod.POST))
                 .andExpect(header("x-goog-api-key", API_KEY))
                 .andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
@@ -57,7 +57,7 @@ class GeminiLlmClientTest {
     @Test
     @DisplayName("키는 URL 이 아니라 헤더로 보낸다")
     void sendsApiKeyAsHeaderNotQueryParam() {
-        server.expect(requestTo("https://llm.test/v1beta/models/gemini-2.5-flash-lite:generateContent"))
+        server.expect(requestTo("https://llm.test/v1beta/models/gemini-3.5-flash-lite:generateContent"))
                 .andExpect(header("x-goog-api-key", API_KEY))
                 .andRespond(withSuccess("""
                         {"candidates":[{"content":{"parts":[{"text":"본문"}]},"finishReason":"STOP"}]}
@@ -72,7 +72,7 @@ class GeminiLlmClientTest {
     @Test
     @DisplayName("프롬프트를 시스템·사용자로 나눠 싣는다")
     void sendsSystemAndUserPromptSeparately() {
-        server.expect(requestTo("https://llm.test/v1beta/models/gemini-2.5-flash-lite:generateContent"))
+        server.expect(requestTo("https://llm.test/v1beta/models/gemini-3.5-flash-lite:generateContent"))
                 .andExpect(jsonPath("$.systemInstruction.parts[0].text").value("시스템 프롬프트"))
                 .andExpect(jsonPath("$.contents[0].parts[0].text").value("사용자 프롬프트"))
                 .andExpect(jsonPath("$.generationConfig.maxOutputTokens").value(700))
@@ -108,7 +108,7 @@ class GeminiLlmClientTest {
     @Test
     @DisplayName("5xx 응답은 예외로 바꾸고 상태 코드만 남긴다")
     void wrapsServerError() {
-        server.expect(requestTo("https://llm.test/v1beta/models/gemini-2.5-flash-lite:generateContent"))
+        server.expect(requestTo("https://llm.test/v1beta/models/gemini-3.5-flash-lite:generateContent"))
                 .andRespond(withServerError());
 
         assertThatThrownBy(() -> client.generate("시스템", "사용자"))
