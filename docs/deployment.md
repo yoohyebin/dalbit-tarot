@@ -61,6 +61,13 @@ mkdir -p ~/dalbit-tarot/{nginx,certbot/conf,certbot/www,backup}
 | `MYSQL_ROOT_PASSWORD` | 새로 만든 강한 값 |
 | `DB_PASSWORD` | 새로 만든 강한 값. 로컬 개발값(`dalbit`)을 쓰지 않는다 |
 | `GEMINI_API_KEY` | **유료 티어 키.** 무료 티어는 입력이 모델 학습에 쓰인다 |
+| `ADMIN_USERNAME` | 관리자 화면 아이디. 기본 `admin` |
+| `ADMIN_PASSWORD` | 관리자 화면 비밀번호. 로컬에서 쓰던 값을 그대로 쓰지 않는다 |
+
+`ADMIN_PASSWORD` 를 비워 두면 컨테이너가 뜰 때마다 무작위 비밀번호를 만들어 로그에만 남긴다.
+재시작하면 값이 바뀌므로 운영에서는 채워 둔다.
+
+HTTPS 를 붙이기 전까지 `/admin` 로그인은 비밀번호가 평문으로 나간다. 6장을 끝낸 뒤에 쓴다.
 
 ## 4. GitHub Secrets (직접)
 
@@ -138,6 +145,8 @@ docker compose -f compose.prod.yaml exec mysql \
   mysql -udalbit -p dalbit_tarot -e \
   "select llm_model, status, count(*), avg(response_time_ms) from request_log group by 1,2;"
 ```
+
+사용자 피드백은 `/admin/feedback` 에서 본다. `.env` 의 `ADMIN_USERNAME` / `ADMIN_PASSWORD` 로 로그인한다.
 
 ## 이미지 직접 만들기
 
