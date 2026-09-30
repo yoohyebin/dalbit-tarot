@@ -431,16 +431,74 @@ input.birth-input[aria-invalid="true"] { border-color: var(--danger); }
     background: var(--bg-card);
 }
 
-.result-card img {
+/* 카드 공개. 뒷면으로 놓였다가 --i 순서대로 한 장씩 뒤집힌다.
+   스크립트가 아니라 CSS 애니메이션으로 해서, 스크립트가 늦거나 실패해도 앞면이 먼저 보였다가
+   뒷면으로 바뀌는 깜빡임이 없고 끝까지 뒤집힌다. */
+.result-card .flip {
     width: 88px;
     flex: 0 0 88px;
-    border-radius: var(--radius-sm);
-    background: #fff;
+    aspect-ratio: 600 / 1036;
+    align-self: flex-start;
+    perspective: 700px;
 }
 
-.result-card img.reversed { transform: rotate(180deg); }
+.flip-inner {
+    position: relative;
+    height: 100%;
+    transform-style: preserve-3d;
+    animation: card-reveal 0.8s cubic-bezier(0.3, 0.7, 0.2, 1) both;
+    animation-delay: calc(var(--i, 0) * 0.55s + 0.35s);
+}
 
-.result-card .meta { min-width: 0; }
+.flip-front, .flip-back {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-sm);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+}
+
+.flip-front { background: #fff; }
+.flip-front.reversed { transform: rotate(180deg); }
+
+/* 뽑기 화면의 카드 뒷면과 같은 모양 */
+.flip-back {
+    transform: rotateY(180deg);
+    border: 1px solid #3d4478;
+    background:
+        radial-gradient(circle at 50% 38%, rgba(217, 178, 106, 0.22) 0%, transparent 55%),
+        linear-gradient(160deg, #232750 0%, #1b1f3c 100%);
+}
+
+.flip-back::after {
+    content: "☾";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: rgba(240, 217, 168, 0.5);
+}
+
+@keyframes card-reveal {
+    from { transform: rotateY(180deg); }
+    to { transform: rotateY(0deg); }
+}
+
+/* 카드 설명은 그 카드가 뒤집힌 뒤에 나타난다 */
+.result-card .meta {
+    min-width: 0;
+    animation: rise-in 0.5s ease-out both;
+    animation-delay: calc(var(--i, 0) * 0.55s + 0.8s);
+}
+
+@keyframes rise-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
 
 .result-card .position {
     font-size: 0.74rem;
@@ -480,6 +538,23 @@ input.birth-input[aria-invalid="true"] { border-color: var(--danger); }
 }
 
 .interpretation.is-error { border-color: var(--danger); color: var(--danger); }
+
+/* 해석은 문단 단위로 차례로 나타난다. 첫 문단은 카드가 다 뒤집힌 뒤에 나온다.
+   카드 공개(0.35s + 장당 0.55s, 뒤집기 0.8s)와 맞춘 값이다. 늦게 도착한 해석은 result.js 가 --delay 를 줄인다 */
+.interpretation { --delay: calc(0.35s + (var(--count, 1) - 1) * 0.55s + 0.8s); }
+
+.interpretation p {
+    margin: 0;
+    animation: rise-in 0.6s ease-out both;
+    animation-delay: calc(var(--delay, 0s) + var(--p, 0) * 0.4s);
+}
+
+.interpretation p + p { margin-top: 0.9em; }
+
+/* 움직임 줄이기를 켠 사용자에게는 연출 없이 바로 보여 준다 */
+@media (prefers-reduced-motion: reduce) {
+    .flip-inner, .result-card .meta, .interpretation p { animation: none; }
+}
 
 /* --- 로딩 --- */
 
