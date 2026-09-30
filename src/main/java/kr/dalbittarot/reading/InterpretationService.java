@@ -6,6 +6,7 @@ import kr.dalbittarot.llm.InterpretationPostProcessor;
 import kr.dalbittarot.llm.LlmClient;
 import kr.dalbittarot.llm.LlmException;
 import kr.dalbittarot.llm.LlmProperties;
+import kr.dalbittarot.llm.LlmResponse;
 import kr.dalbittarot.llm.PromptBuilder;
 import kr.dalbittarot.reading.dto.ReadingResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.Optional;
 public class InterpretationService {
 
     private static final Duration RETRY_DELAY = Duration.ofMillis(500);
+    // 관리자 통계(LlmStatsService.CACHE_MODEL)가 이 이름으로 캐시 적중을 센다
     private static final String CACHE_MODEL_NAME = "cache";
 
     private final InterpretationStore store;
@@ -50,7 +52,7 @@ public class InterpretationService {
         LocalDateTime requestedAt = LocalDateTime.now();
         Optional<String> cached = cache.find(context);
         if (cached.isPresent()) {
-            store.complete(context.sessionId(), cached.get(), requestedAt, 0, CACHE_MODEL_NAME);
+            store.complete(context.sessionId(), cached.get(), requestedAt, 0, CACHE_MODEL_NAME, null, null);
             return readingService.findByShareToken(shareToken);
         }
 
@@ -60,9 +62,9 @@ public class InterpretationService {
     }
 
     private String callWithRetry(InterpretationContext context, LocalDateTime requestedAt) {
-        String systemPrompt = promptBuilder.systemPrompt();
+        String systemPrompt = promptBuilder.systemPrompt(context.spreadType());
         String userPrompt = promptBuilder.userPrompt(
-                context.categoryLabel(), context.birthDate(), context.cards());
+                context.categoryLabel(), context.birthDate(), context.spreadType(), context.cards());
 
         int maxAttempts = llmProperties.maxRetries() + 1;
         LlmException lastFailure = null;
@@ -70,11 +72,12 @@ public class InterpretationService {
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             long startedAt = System.nanoTime();
             try {
-                String raw = llmClient.generate(systemPrompt, userPrompt);
-                String interpretation = postProcessor.process(raw);
+                LlmResponse response = llmClient.generate(systemPrompt, userPrompt);
+                String interpretation = postProcessor.process(response.text());
                 int elapsedMs = elapsedMsSince(startedAt);
 
-                store.complete(context.sessionId(), interpretation, requestedAt, elapsedMs, llmClient.modelName());
+                store.complete(context.sessionId(), interpretation, requestedAt, elapsedMs, llmClient.modelName(),
+                        response.promptTokens(), response.outputTokens());
                 log.info("해석 생성 완료. sessionId={} attempt={} elapsedMs={}",
                         context.sessionId(), attempt, elapsedMs);
                 return interpretation;

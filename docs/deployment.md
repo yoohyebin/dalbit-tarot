@@ -72,6 +72,12 @@ mkdir -p ~/dalbit-tarot/{nginx,certbot/conf,certbot/www,backup}
 - `deploy/nginx/dalbit-tarot.conf` → `nginx/dalbit-tarot.conf`
 - `deploy/.env.example` → `.env` (값 채우기)
 
+앞의 두 파일은 **처음 한 번만** 직접 복사한다. 이후에는 배포할 때마다 워크플로가 저장소의
+파일을 올리고, compose 는 문법을, Nginx 는 `nginx -t` 로 검사한 뒤 바꿔 넣는다. Nginx 설정이
+틀리면 이전 설정으로 되돌리고 배포를 실패로 표시한다.
+
+`.env` 는 비밀값이 있어 워크플로가 건드리지 않는다. 새 환경변수가 생기면 서버의 `.env` 에 직접 추가한다.
+
 `.env` 에 넣을 값:
 
 | 키 | 설명 |
@@ -212,15 +218,44 @@ docker run --rm \
 
 ## 7. 백업
 
-RDS 를 쓰지 않으므로 백업은 직접 챙긴다. EC2 에 crontab 으로 넣는다.
+RDS 를 쓰지 않으므로 백업은 직접 챙긴다. `deploy/backup.sh` 가 DB 를 덤프해 `backup/` 에
+gzip 으로 남기고 14일 지난 파일을 지운다. 덤프가 중간에 끊긴 파일은 백업으로 남기지 않는다.
 
-```
-0 4 * * * cd ~/dalbit-tarot && docker compose -f compose.prod.yaml exec -T mysql \
-  mysqldump -u root -p"$MYSQL_ROOT_PASSWORD" --single-transaction dalbit_tarot \
-  | gzip > backup/dalbit-$(date +\%Y\%m\%d).sql.gz && find backup -name '*.sql.gz' -mtime +14 -delete
+Amazon Linux 2023 에는 cron 이 기본으로 없어서 systemd 타이머로 돌린다. 매일 새벽 4시(한국 시간)다.
+
+**설치 (처음 한 번, 맥에서 파일을 올린 뒤 서버에서)**
+
+```bash
+scp -i ~/.ssh/dalbit-tarot-key.pem deploy/backup.sh ec2-user@서버IP:~/dalbit-tarot/
+scp -i ~/.ssh/dalbit-tarot-key.pem deploy/systemd/dalbit-backup.* ec2-user@서버IP:/tmp/
 ```
 
-**EC2 디스크에만 두면 인스턴스가 죽을 때 같이 사라진다.** S3 동기화를 붙이는 것이 안전하다.
+```bash
+chmod +x ~/dalbit-tarot/backup.sh
+sudo mv /tmp/dalbit-backup.service /tmp/dalbit-backup.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now dalbit-backup.timer
+sudo systemctl start dalbit-backup.service     # 한 번 바로 돌려 본다
+ls -lh ~/dalbit-tarot/backup/
+```
+
+**상태 확인**
+
+```bash
+systemctl list-timers dalbit-backup.timer      # 다음 실행 시각
+journalctl -u dalbit-backup.service -n 20      # 최근 실행 결과
+```
+
+**복구**
+
+```bash
+cd ~/dalbit-tarot
+gzip -dc backup/dalbit_tarot-날짜.sql.gz | docker compose -f compose.prod.yaml exec -T mysql \
+  sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" mysql -uroot --default-character-set=utf8mb4 dalbit_tarot'
+```
+
+**EC2 디스크에만 두면 인스턴스가 죽을 때 같이 사라진다.** 지금 백업은 DB 가 깨지거나 데이터를 잘못
+지웠을 때를 대비한 것이다. 인스턴스를 잃는 경우까지 대비하려면 S3 로 올리는 단계를 붙여야 한다.
 
 ## 8. 롤백
 

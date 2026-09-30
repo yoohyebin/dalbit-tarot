@@ -53,12 +53,12 @@ public class InterpretationStore {
     }
 
     @Transactional
-    public void complete(Long sessionId, String interpretation,
-                         LocalDateTime requestedAt, int elapsedMs, String model) {
+    public void complete(Long sessionId, String interpretation, LocalDateTime requestedAt, int elapsedMs,
+                         String model, Integer promptTokens, Integer outputTokens) {
         readingSessionRepository.findById(sessionId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.READING_NOT_FOUND, "없는 sessionId: " + sessionId))
                 .completeWith(interpretation);
-        requestLogRepository.save(RequestLog.success(sessionId, requestedAt, elapsedMs, model));
+        requestLogRepository.save(RequestLog.success(sessionId, requestedAt, elapsedMs, model, promptTokens, outputTokens));
     }
 
     @Transactional

@@ -1,6 +1,7 @@
 package kr.dalbittarot.reading;
 
 import kr.dalbittarot.llm.LlmClient;
+import kr.dalbittarot.llm.LlmResponse;
 import kr.dalbittarot.llm.LlmException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +40,9 @@ class InterpretationApiTest {
     @Autowired
     private ReadingSessionRepository readingSessionRepository;
 
+    @Autowired
+    private RequestLogRepository requestLogRepository;
+
     @MockitoBean
     private LlmClient llmClient;
 
@@ -62,7 +66,7 @@ class InterpretationApiTest {
     @Test
     @DisplayName("해석을 요청하면 본문이 채워지고 상태가 COMPLETED 로 바뀐다")
     void interpretsReading() throws Exception {
-        given(llmClient.generate(any(), any())).willReturn(INTERPRETATION);
+        given(llmClient.generate(any(), any())).willReturn(LlmResponse.textOnly(INTERPRETATION));
         String token = drawReading();
 
         mockMvc.perform(post("/api/readings/{shareToken}/interpretation", token))
@@ -74,9 +78,26 @@ class InterpretationApiTest {
     }
 
     @Test
+    @DisplayName("해석이 성공하면 호출 기록에 토큰 사용량을 남긴다")
+    void recordsTokenUsage() throws Exception {
+        given(llmClient.generate(any(), any())).willReturn(new LlmResponse(INTERPRETATION, 460, 252));
+        String token = drawReading();
+
+        mockMvc.perform(post("/api/readings/{shareToken}/interpretation", token))
+                .andExpect(status().isOk());
+
+        Long sessionId = readingSessionRepository.findByShareToken(token).orElseThrow().getId();
+        RequestLog log = requestLogRepository.findAll().stream()
+                .filter(l -> l.getSessionId().equals(sessionId))
+                .findFirst().orElseThrow();
+        assertThat(log.getPromptTokens()).isEqualTo(460);
+        assertThat(log.getOutputTokens()).isEqualTo(252);
+    }
+
+    @Test
     @DisplayName("같은 결과를 두 번 요청해도 LLM 은 한 번만 부른다")
     void doesNotCallLlmTwiceForSameReading() throws Exception {
-        given(llmClient.generate(any(), any())).willReturn(INTERPRETATION);
+        given(llmClient.generate(any(), any())).willReturn(LlmResponse.textOnly(INTERPRETATION));
         String token = drawReading();
 
         mockMvc.perform(post("/api/readings/{shareToken}/interpretation", token))
@@ -93,7 +114,7 @@ class InterpretationApiTest {
     void retriesOnceThenSucceeds() throws Exception {
         given(llmClient.generate(any(), any()))
                 .willThrow(LlmException.error("일시적 오류"))
-                .willReturn(INTERPRETATION);
+                .willReturn(LlmResponse.textOnly(INTERPRETATION));
         String token = drawReading();
 
         mockMvc.perform(post("/api/readings/{shareToken}/interpretation", token))

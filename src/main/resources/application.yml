@@ -48,6 +48,12 @@ dalbit:
     temperature: 0.9               # 같은 카드라도 문장이 조금씩 달라지게
     timeout: 20s
     max-retries: 1
+    pricing:
+      # 관리자 통계 화면의 추정 비용 계산용. 모델을 바꾸면 같이 바꾼다.
+      # gemini-3.5-flash-lite 유료 티어, 2026-09 기준 100만 토큰당 달러
+      input-per-million: 0.30
+      output-per-million: 2.50
+      krw-per-usd: 1400
 
   rate-limit:
     enabled: true

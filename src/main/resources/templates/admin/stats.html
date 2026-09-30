@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('LLM 호출')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: siteHeader}"></header>
+
+<main class="wrap">
+    <nav th:replace="~{fragments/layout :: adminTabs('stats')}"></nav>
+
+    <section class="fade-in">
+        <h1>LLM 호출</h1>
+        <p class="hint">
+            추정 비용은 100만 토큰당 입력 $<span th:text="${#numbers.formatDecimal(stats.pricing.inputPerMillion, 1, 2)}">0.30</span>
+            · 출력 $<span th:text="${#numbers.formatDecimal(stats.pricing.outputPerMillion, 1, 2)}">2.50</span>,
+            환율 <span th:text="${#numbers.formatInteger(stats.pricing.krwPerUsd, 1, 'COMMA')}">1,400</span>원 기준입니다.
+            토큰을 기록하기 전의 호출은 비용에 들어가지 않습니다.
+        </p>
+    </section>
+
+    <!-- 오늘 · 최근 7일 · 최근 30일 -->
+    <section class="stat-grid">
+        <article class="stat-card" th:each="period : ${stats.periods}" th:with="s=${period.summary}">
+            <h2 th:text="${period.label}">오늘</h2>
+            <dl>
+                <dt>해석 요청</dt>
+                <dd>
+                    <span th:text="${s.calls}">0</span>건
+                    <small th:if="${s.cacheHits > 0}" th:text="'캐시 적중 ' + ${s.cacheHits} + '건'">캐시 적중 0건</small>
+                </dd>
+                <dt>실패율</dt>
+                <dd th:classappend="${s.failures > 0} ? 'is-warn'"
+                    th:text="${s.failureRate != null} ? ${#numbers.formatDecimal(s.failureRate, 1, 1)} + '%' : '-'">-</dd>
+                <dt>평균 응답</dt>
+                <dd th:text="${s.avgResponseMs != null} ? ${#numbers.formatDecimal(s.avgResponseMs / 1000.0, 1, 1)} + '초' : '-'">-</dd>
+                <dt>추정 비용</dt>
+                <dd>
+                    <span th:text="'$' + ${#numbers.formatDecimal(s.costUsd, 1, 4)}">$0.0000</span>
+                    <small th:text="'약 ' + ${#numbers.formatInteger(s.costKrw, 1, 'COMMA')} + '원'">약 0원</small>
+                </dd>
+            </dl>
+        </article>
+    </section>
+
+    <section>
+        <h2>일별 <small class="hint">최근 14일</small></h2>
+        <!-- 표가 휴대폰 폭보다 넓으면 표 안에서만 가로로 밀린다 -->
+        <div class="table-scroll">
+            <table class="stats-table">
+                <thead>
+                <tr><th>날짜</th><th>요청</th><th>캐시</th><th>실패</th><th>평균 응답</th><th>토큰 (입력/출력)</th><th>비용</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="day : ${stats.daily}" th:with="s=${day.summary}" th:classappend="${s.calls == 0} ? 'is-empty'">
+                    <td th:text="${#temporals.format(day.date, 'M/d (E)')}">9/30</td>
+                    <td th:text="${s.calls}">0</td>
+                    <td th:text="${s.cacheHits}">0</td>
+                    <td th:text="${s.failures}" th:classappend="${s.failures > 0} ? 'is-warn'">0</td>
+                    <td th:text="${s.avgResponseMs != null} ? ${#numbers.formatDecimal(s.avgResponseMs / 1000.0, 1, 1)} + '초' : '-'">-</td>
+                    <td th:text="${#numbers.formatInteger(s.promptTokens, 1, 'COMMA')} + ' / ' + ${#numbers.formatInteger(s.outputTokens, 1, 'COMMA')}">0 / 0</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(s.costUsd, 1, 4)}">$0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section>
+        <h2>모델별 <small class="hint">최근 30일</small></h2>
+        <div class="notice" th:if="${stats.models.empty}">최근 30일 동안 호출이 없습니다.</div>
+        <div class="table-scroll" th:unless="${stats.models.empty}">
+            <table class="stats-table">
+                <thead>
+                <tr><th>모델</th><th>요청</th><th>실패</th><th>평균 응답</th><th>비용</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="m : ${stats.models}" th:with="s=${m.summary}">
+                    <td th:text="${m.name}">gemini</td>
+                    <td th:text="${s.calls}">0</td>
+                    <td th:text="${s.failures}" th:classappend="${s.failures > 0} ? 'is-warn'">0</td>
+                    <td th:text="${s.avgResponseMs != null} ? ${#numbers.formatDecimal(s.avgResponseMs / 1000.0, 1, 1)} + '초' : '-'">-</td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(s.costUsd, 1, 4)}">$0</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section>
+        <h2>최근 실패</h2>
+        <div class="notice" th:if="${stats.failures.empty}">최근 30일 동안 실패가 없습니다.</div>
+        <div class="feedback-list" th:unless="${stats.failures.empty}">
+            <article class="feedback-item" th:each="f : ${stats.failures}">
+                <div class="meta">
+                    <span class="nickname" th:text="${f.status} + ' · ' + ${f.model}">ERROR · gemini</span>
+                    <span class="date" th:text="${#temporals.format(f.requestedAt, 'MM-dd HH:mm')}">09-30 01:18</span>
+                </div>
+                <p class="body" th:text="${f.errorMessage != null} ? ${f.errorMessage} : '메시지 없음'">Gemini 응답 상태 404</p>
+            </article>
+        </div>
+    </section>
+
+    <form method="post" th:action="@{/admin/logout}">
+        <button type="submit" class="btn btn-ghost">로그아웃</button>
+    </form>
+</main>
+
+<footer th:replace="~{fragments/layout :: siteFooter}"></footer>
+</body>
+</html>

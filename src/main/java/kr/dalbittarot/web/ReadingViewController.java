@@ -18,6 +18,7 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import kr.dalbittarot.reading.ReadingService;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -74,6 +75,7 @@ public class ReadingViewController {
 
             ModelAndView view = new ModelAndView("reading/result");
             view.addObject("reading", reading);
+            view.addObject("paragraphs", paragraphs(reading.interpretation()));
             view.addObject("share", SharePreview.of(reading, baseUrl()));
             view.addObject("kakao", kakaoProperties);
             return view;
@@ -81,6 +83,20 @@ public class ReadingViewController {
             log.warn("결과 페이지 조회 실패. shareToken={}", shareToken);
             return new ModelAndView("error/not-found", HttpStatus.NOT_FOUND);
         }
+    }
+
+    /**
+     * 해석을 문단으로 나눈다. 화면에서 문단마다 차례로 나타나게 하려는 것이다.
+     * 기준은 result.js 와 같게 줄바꿈으로 한다.
+     */
+    static List<String> paragraphs(String interpretation) {
+        if (interpretation == null) {
+            return List.of();
+        }
+        return Arrays.stream(interpretation.split("\\n+"))
+                .map(String::strip)
+                .filter(paragraph -> !paragraph.isEmpty())
+                .toList();
     }
 
     /**

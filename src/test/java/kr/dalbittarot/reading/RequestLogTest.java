@@ -14,7 +14,7 @@ class RequestLogTest {
     @Test
     @DisplayName("성공 이력은 오류 메시지 없이 남는다")
     void recordsSuccessWithoutErrorMessage() {
-        RequestLog log = RequestLog.success(1L, LocalDateTime.now(), 820, "gemini-3.5-flash-lite");
+        RequestLog log = RequestLog.success(1L, LocalDateTime.now(), 820, "gemini-3.5-flash-lite", 460, 250);
 
         assertThat(log.getStatus()).isEqualTo(LlmCallStatus.SUCCESS);
         assertThat(log.getErrorMessage()).isNull();
