@@ -7,15 +7,15 @@
 <main class="wrap">
     <section class="fade-in">
         <h1 id="deck-title">카드를 골라 주세요</h1>
-        <p class="hint" id="deck-guide">마음이 가는 카드를 고르세요. 누른 채로 좌우로 밀면 카드가 올라와서 확인할 수 있고, 다시 누르면 선택이 풀립니다.</p>
+        <p class="hint" id="deck-guide">마음이 가는 카드를 고르세요. 누른 채로 원을 따라 밀면 카드가 올라와서 확인할 수 있고, 다시 누르면 선택이 풀립니다.</p>
     </section>
 
     <div class="deck" id="deck">
         <button type="button" class="card-back" th:each="i : ${#numbers.sequence(1, 26)}"
                 th:attr="data-index=${i}" th:aria-label="'카드 ' + ${i}"></button>
+        <!-- 원 가운데 빈자리에 남은 장수를 띄운다 -->
+        <p class="deck-status" id="deck-status" aria-live="polite"></p>
     </div>
-
-    <p class="deck-status" id="deck-status"></p>
 
     <div class="deck-confirm">
         <button type="button" class="btn" id="confirm" disabled>뽑기 완료</button>
