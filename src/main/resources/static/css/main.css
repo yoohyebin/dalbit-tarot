@@ -533,9 +533,12 @@ input.birth-input[aria-invalid="true"] { border-color: var(--danger); }
     border: 1px solid var(--line);
     border-radius: var(--radius);
     background: var(--bg-soft);
-    white-space: pre-wrap;
+    /* pre-wrap 을 여기 걸면 서버가 문단(p)을 그릴 때 템플릿의 줄바꿈·들여쓰기가
+       빈 줄로 보인다. 문단은 p 로 나뉘어 있으니 p 안에서만 줄바꿈을 살린다 */
     font-size: 0.98rem;
 }
+
+.interpretation p, .interpretation.is-error { white-space: pre-wrap; }
 
 .interpretation.is-error { border-color: var(--danger); color: var(--danger); }
 
