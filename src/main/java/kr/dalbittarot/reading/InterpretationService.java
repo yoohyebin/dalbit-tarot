@@ -60,9 +60,9 @@ public class InterpretationService {
     }
 
     private String callWithRetry(InterpretationContext context, LocalDateTime requestedAt) {
-        String systemPrompt = promptBuilder.systemPrompt();
+        String systemPrompt = promptBuilder.systemPrompt(context.spreadType());
         String userPrompt = promptBuilder.userPrompt(
-                context.categoryLabel(), context.birthDate(), context.cards());
+                context.categoryLabel(), context.birthDate(), context.spreadType(), context.cards());
 
         int maxAttempts = llmProperties.maxRetries() + 1;
         LlmException lastFailure = null;

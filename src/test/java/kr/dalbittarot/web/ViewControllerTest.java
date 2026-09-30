@@ -105,6 +105,33 @@ class ViewControllerTest {
     }
 
     @Test
+    @DisplayName("3카드 결과 화면은 카드마다 상황·걸림돌·조언 자리를 보여 준다")
+    void showsThreeCardPositions() throws Exception {
+        String token = drawReading();
+
+        mockMvc.perform(get("/reading/result/{shareToken}", token))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.stringContainsInOrder(
+                        "class=\"position\">상황<", "class=\"position\">걸림돌<", "class=\"position\">조언<")));
+    }
+
+    @Test
+    @DisplayName("이미 만든 해석은 문단으로 나눠 그린다")
+    void rendersInterpretationAsParagraphs() throws Exception {
+        String token = drawReading();
+        mockMvc.perform(post("/api/readings/{shareToken}/interpretation", token))
+                .andExpect(status().isOk());
+
+        // 대역 응답은 세 줄이라 문단 세 개가 된다
+        mockMvc.perform(get("/reading/result/{shareToken}", token))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.stringContainsInOrder(
+                        "style=\"--p: 0\"", "style=\"--p: 1\"", "style=\"--p: 2\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(
+                        org.hamcrest.Matchers.containsString("style=\"--p: 3\""))));
+    }
+
+    @Test
     @DisplayName("결과 화면은 링크 미리보기용 og 태그를 절대 주소로 넣는다")
     void rendersOpenGraphTags() throws Exception {
         String token = drawReading();

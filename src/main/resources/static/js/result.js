@@ -35,11 +35,28 @@ function stopWaitingMessages() {
     messageTimers = [];
 }
 
+/* 카드가 다 뒤집히는 시각(페이지를 연 뒤 초). main.css 의 카드 공개 애니메이션
+   (0.35s + 장당 0.55s, 뒤집기 0.8s)과 맞춘다 */
+const cardCount = document.querySelectorAll('.result-card').length;
+const REVEAL_DONE_S = 0.35 + (cardCount - 1) * 0.55 + 0.8;
+
+/* 해석을 문단으로 나눠 차례로 보이게 한다. 한 덩어리로 한 번에 뜨면 이야기라기보다 안내문처럼 보인다.
+   문단 나누는 기준은 서버(ReadingViewController)와 같게 줄바꿈으로 한다.
+   카드가 아직 뒤집히는 중에 해석이 도착하면(캐시 등) 다 뒤집힐 때까지 기다렸다 띄운다. */
 function showInterpretation(text) {
-    interpretation.textContent = text;
+    interpretation.replaceChildren(...text.split(/\n+/)
+        .map((paragraph) => paragraph.trim())
+        .filter(Boolean)
+        .map((paragraph, index) => {
+            const p = document.createElement('p');
+            p.textContent = paragraph;
+            p.style.setProperty('--p', String(index));
+            return p;
+        }));
+    const remaining = Math.max(0, REVEAL_DONE_S - performance.now() / 1000);
+    interpretation.style.setProperty('--delay', `${remaining.toFixed(2)}s`);
     interpretation.classList.remove('is-error');
     interpretation.hidden = false;
-    interpretation.classList.add('fade-in');
 }
 
 function showError(message) {
