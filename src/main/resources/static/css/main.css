@@ -297,6 +297,13 @@ input[type="date"]:focus, select:focus {
        차지하므로, 여백을 조금만 남겨도 부채가 눈에 띄게 좁아진다 */
     width: 100vw;
     margin-left: calc(50% - 50vw);
+
+    /* 카드 위에서 좌우로 밀어 고를 수 있게 가로 움직임은 페이지가 가져가지 않는다.
+       세로로 쓸면 평소처럼 스크롤된다 */
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
 
 .card-back {
@@ -342,16 +349,20 @@ input[type="date"]:focus, select:focus {
 .deck.spread .card-back { transform: rotate(var(--angle)); }
 
 /*
- * hover 로는 카드를 들어올리지 않는다. 테두리만 밝힌다.
- * 들어올리면 선택을 푼 직후 커서가 그대로 카드 위에 있어서
- * -34px → -12px 로 멈췄다가 마우스를 치워야 부채로 돌아간다. 두 단계로 움직여 어색하다.
- * 터치 기기는 탭한 뒤에도 hover 가 남으므로 (hover: hover) 로 막아 둔다.
+ * 가리키는 카드. CSS :hover 를 쓰지 않는다. :hover 는 커서 아래 맨 위 요소에 붙어서
+ * 가운데를 가리켜도 오른쪽 이웃 카드가 밝아진다. draw.js 가 각도로 찾아 .aimed 를 붙인다.
+ *
+ * 마우스일 때는 들어 올리지 않고 테두리만 밝힌다. 들어 올리면 선택을 푼 직후 커서가
+ * 그대로 카드 위에 있어서 -34px → -14px 로 멈췄다가 마우스를 치워야 내려간다.
  */
-@media (hover: hover) and (pointer: fine) {
-    .deck.spread .card-back:hover:not(:disabled):not(.picked) {
-        border-color: rgba(217, 178, 106, 0.55);
-        z-index: 200;
-    }
+.deck.spread .card-back.aimed:not(:disabled):not(.picked) {
+    border-color: rgba(217, 178, 106, 0.7);
+    z-index: 200;
+}
+
+/* 터치로 누르고 있는 동안에는 손가락에 가려 테두리가 안 보이므로 살짝 들어 올린다 */
+.deck.spread.aiming .card-back.aimed:not(:disabled):not(.picked) {
+    transform: rotate(var(--angle)) translateY(-14px);
 }
 
 /* 선택을 푼 직후. z-index 는 전환되지 않아서 그냥 두면 내려가는 도중에
