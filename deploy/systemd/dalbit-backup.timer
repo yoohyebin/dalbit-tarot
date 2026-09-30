@@ -1,0 +1,12 @@
+# 매일 새벽 4시(한국 시간)에 백업한다. 서버 시간대가 UTC 여도 한국 시간 기준으로 돈다.
+# 서버가 꺼져 있어 놓친 경우 켜진 뒤 한 번 돌린다(Persistent).
+[Unit]
+Description=dalbit-tarot daily database backup
+
+[Timer]
+OnCalendar=*-*-* 04:00:00 Asia/Seoul
+Persistent=true
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target
