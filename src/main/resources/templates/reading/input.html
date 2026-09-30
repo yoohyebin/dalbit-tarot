@@ -26,8 +26,12 @@
 
         <div class="field">
             <label for="birth-date">생년월일<span class="optional">선택</span></label>
-            <input type="date" id="birth-date" name="birthDate" min="1900-01-01">
-            <p class="hint">해석 문장을 만들 때 참고만 합니다. 사주 계산은 하지 않습니다.</p>
+            <!-- 달력 대신 숫자로 적게 한다. 달력은 연·월을 고르면 닫혀서 일을 고르려고 다시 열어야 했다 -->
+            <input type="text" id="birth-date" name="birthDate" class="birth-input"
+                   inputmode="numeric" placeholder="예) 1998.03.15"
+                   aria-describedby="birth-date-error">
+            <p class="field-error" id="birth-date-error" role="alert" hidden></p>
+            <p class="hint">숫자 8자리만 입력하면 됩니다. 해석 문장을 만들 때 참고만 하고, 사주 계산은 하지 않습니다.</p>
         </div>
 
         <div class="field">

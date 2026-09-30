@@ -223,9 +223,9 @@ input[type="text"]:focus, input[type="password"]:focus {
 
 input::placeholder, textarea::placeholder { color: #6b6b88; }
 
-input[type="date"], select {
+select {
     width: 100%;
-    /* 이게 없으면 네이티브 달력 아이콘과 팝업이 밝은 테마로 떠서 어두운 배경에 묻힌다 */
+    /* 이게 없으면 네이티브 선택 목록이 밝은 테마로 떠서 어두운 배경에 묻힌다 */
     color-scheme: dark;
     padding: 17px 16px;
     border: 1px solid var(--line);
@@ -236,17 +236,21 @@ input[type="date"], select {
     font-size: 1.05rem;
 }
 
-input[type="date"]::-webkit-calendar-picker-indicator {
-    width: 22px;
-    height: 22px;
-    cursor: pointer;
-    opacity: 0.85;
-}
-
-input[type="date"]:focus, select:focus {
+select:focus {
     outline: none;
     border-color: var(--gold);
 }
+
+/* 생년월일. 옆의 성별 선택과 높이·글자 크기를 맞춘다 */
+input.birth-input {
+    padding: 17px 16px;
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+}
+
+input.birth-input[aria-invalid="true"] { border-color: var(--danger); }
+
+.field-error { margin-top: 6px; font-size: 0.85rem; color: var(--danger); }
 
 .choice-group { display: flex; gap: 8px; }
 
