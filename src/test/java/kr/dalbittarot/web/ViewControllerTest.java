@@ -62,6 +62,15 @@ class ViewControllerTest {
     }
 
     @Test
+    @DisplayName("생년월일은 달력이 아니라 숫자로 직접 입력한다")
+    void asksBirthDateAsDigits() throws Exception {
+        mockMvc.perform(get("/reading/input").param("category", "LOVE"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("inputmode=\"numeric\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("type=\"date\""))));
+    }
+
+    @Test
     @DisplayName("없는 카테고리로 입력 화면을 열면 404 를 준다")
     void rejectsUnknownCategoryOnInput() throws Exception {
         mockMvc.perform(get("/reading/input").param("category", "NOPE"))
