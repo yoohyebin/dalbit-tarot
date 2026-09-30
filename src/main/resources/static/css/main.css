@@ -615,6 +615,54 @@ input.birth-input[aria-invalid="true"] { border-color: var(--danger); }
     word-break: break-word;
 }
 
+/* --- 관리자 --- */
+
+.admin-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+}
+
+.admin-tabs a {
+    padding: 10px 14px;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.92rem;
+}
+
+.admin-tabs a.active { color: var(--gold-soft); border-bottom-color: var(--gold); }
+
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+
+.stat-card {
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+}
+
+.stat-card h2 { margin: 0 0 8px; font-size: 0.95rem; color: var(--gold-soft); }
+.stat-card dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; }
+.stat-card dt { font-size: 0.78rem; color: var(--text-dim); align-self: center; }
+.stat-card dd { margin: 0; text-align: right; font-size: 0.92rem; }
+.stat-card small, .stats-table small { color: var(--text-dim); font-size: 0.74rem; }
+/* 원화 환산은 달러 아래 줄에 둔다. 옆에 붙이면 좁은 칸에서 "약 / 0원" 으로 끊긴다 */
+.stat-card dd small { display: block; }
+/* 두 칸씩 놓이면 마지막 카드가 혼자 남으므로 한 줄을 다 쓴다 */
+.stat-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+
+.table-scroll { overflow-x: auto; }
+
+.stats-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; white-space: nowrap; }
+.stats-table th, .stats-table td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+.stats-table th:first-child, .stats-table td:first-child { text-align: left; }
+.stats-table th { color: var(--text-dim); font-weight: 500; }
+.stats-table tr.is-empty td { color: #5d5d78; }
+
+.is-warn { color: var(--danger); }
+
 /* --- 처리방침 --- */
 
 .doc { font-size: 0.92rem; }

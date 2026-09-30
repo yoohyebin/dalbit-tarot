@@ -1,6 +1,7 @@
 package kr.dalbittarot.reading;
 
 import kr.dalbittarot.llm.LlmClient;
+import kr.dalbittarot.llm.LlmResponse;
 import kr.dalbittarot.reading.dto.ReadingCreateRequest;
 import kr.dalbittarot.reading.dto.ReadingResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +56,7 @@ class InterpretationCacheHitTest {
     @BeforeEach
     void setUp() {
         given(llmClient.modelName()).willReturn("test-model");
-        given(llmClient.generate(any(), any())).willReturn(INTERPRETATION);
+        given(llmClient.generate(any(), any())).willReturn(LlmResponse.textOnly(INTERPRETATION));
         given(cardDrawer.draw(any(), any()))
                 .willReturn(List.of(new DrawnCard(1, CARD_ID_SEQUENCE.getAndIncrement(), false)));
     }

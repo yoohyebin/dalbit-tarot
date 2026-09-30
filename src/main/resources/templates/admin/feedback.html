@@ -5,6 +5,8 @@
 <header th:replace="~{fragments/layout :: siteHeader}"></header>
 
 <main class="wrap">
+    <nav th:replace="~{fragments/layout :: adminTabs('feedback')}"></nav>
+
     <section class="fade-in">
         <h1>받은 의견</h1>
         <p class="hint">
