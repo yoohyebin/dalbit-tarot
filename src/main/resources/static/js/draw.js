@@ -18,7 +18,7 @@ function start(reading) {
     const picked = new Set();
     let submitting = false;
 
-    /* 부채꼴 배치. 가운데를 0도로 두고 좌우로 --spread 만큼 벌린다.
+    /* 원형 배치. 맨 위를 0도로 두고 양쪽으로 --spread 만큼 두른다.
        각도는 CSS 변수로 넘겨서 hover·선택 시 transform 에 그대로 얹을 수 있게 한다. */
     function layOut() {
         const spread = parseFloat(getComputedStyle(deck).getPropertyValue('--spread'));
@@ -131,28 +131,29 @@ function start(reading) {
         updateStatus();
     }
 
-    /* 누른 자리의 카드를 부채 모양으로 직접 계산한다.
+    /* 누른 자리의 카드를 원 모양으로 직접 계산한다.
        브라우저에 맡기면(click 대상) 두 가지가 어긋난다.
        - 휴대폰 브라우저는 손가락 면적 안에 버튼이 여러 개면 "가장 그럴듯한" 버튼으로 탭을 옮긴다.
-         카드 한 장이 보이는 폭이 손가락보다 좁아서 옆 카드로 옮겨지는 일이 생긴다
+         카드가 겹쳐 있어서 옆 카드로 옮겨지는 일이 생긴다
        - 미리 보여 주려고 들어 올린 카드가 이웃을 덮어서, 밀어도 그 카드에서 벗어나지 않는다
        pointer 이벤트 좌표는 보정 전 원래 좌표라, 이것으로 "화면에 보이는 카드"를 계산한다. */
-    const PICK_LIFT_PX = 34;   // .picked 의 translateY 와 맞춘다
     const toDeg = (rad) => rad * 180 / Math.PI;
 
     function geometry() {
         const style = getComputedStyle(deck);
         const sample = cards[0];
         const rect = deck.getBoundingClientRect();
-        const pivotRatio = parseFloat(style.getPropertyValue('--pivot')) / 100;
+        // 회전 중심은 카드 위 끝에서 transform-origin 세로값만큼 아래다. 브라우저가 px 로 풀어 준 값을 쓴다
+        const pivotOffset = parseFloat(getComputedStyle(sample).transformOrigin.split(' ')[1]);
         // offset* 는 회전 전 자리라 기준으로 쓸 수 있다
         return {
             spread: parseFloat(style.getPropertyValue('--spread')),
-            pivotRatio,
+            pickLift: parseFloat(style.getPropertyValue('--pick-lift')),
             width: sample.offsetWidth,
             height: sample.offsetHeight,
+            pivotOffset,
             pivotX: rect.left + rect.width / 2,
-            pivotY: rect.top + sample.offsetTop + sample.offsetHeight * pivotRatio,
+            pivotY: rect.top + sample.offsetTop + pivotOffset,
         };
     }
 
@@ -161,40 +162,46 @@ function start(reading) {
         const dx = clientX - g.pivotX;
         const dy = g.pivotY - clientY;
         const radius = Math.hypot(dx, dy);
-        const angle = toDeg(Math.atan2(dx, dy));   // 위가 0도, 오른쪽이 +
+        const angle = toDeg(Math.atan2(dx, dy));   // 위가 0도, 오른쪽이 +. -180 ~ 180
         const last = cards.length - 1;
         const step = g.spread / last;
         const angleOf = (index) => (index / last - 0.5) * g.spread;
+        const inner = g.pivotOffset - g.height;    // 원 중심에서 카드 아래 끝까지
+        const outer = g.pivotOffset;               // 원 중심에서 카드 위 끝까지
 
         // 골라서 들어 올린 카드는 이웃을 통째로 덮고 있으니 먼저 본다
         for (const card of picked) {
             const turn = (angle - angleOf(cards.indexOf(card))) * Math.PI / 180;
             const along = radius * Math.cos(turn);   // 카드 축 방향 거리
             const side = radius * Math.sin(turn);    // 축에서 옆으로 벗어난 거리
-            const bottom = g.height * (g.pivotRatio - 1) + PICK_LIFT_PX;
+            const bottom = inner + g.pickLift;
             if (Math.abs(side) <= g.width / 2 && along >= bottom && along <= bottom + g.height) {
                 return card;
             }
         }
 
-        const inner = g.height * (g.pivotRatio - 1);   // 카드 아래 끝까지 거리
-        const outer = g.height * g.pivotRatio;         // 카드 위 끝까지 거리
         if (radius < inner - 12 || radius > outer + 12) {
             return null;
         }
 
-        /* 카드마다 보이는 곳은 왼쪽 끝부터 한 칸 폭이다. 나머지는 오른쪽 카드에 덮여 있다.
+        /* 카드마다 보이는 곳은 왼쪽 끝부터 한 칸 폭이다. 나머지는 오른쪽(시계 방향) 카드에 덮여 있다.
            edge 는 카드 반폭이 이 거리에서 차지하는 각도, 즉 축에서 왼쪽 끝까지의 각도다 */
         const r = Math.min(Math.max(radius, inner), outer);
         const edge = toDeg(Math.asin(Math.min(1, g.width / 2 / r)));
-        if (angle < -g.spread / 2 - edge || angle > g.spread / 2 + edge) {
-            return null;
-        }
-        const index = Math.floor((angle + edge + g.spread / 2) / step);
-        return cards[Math.min(last, Math.max(0, index))];
+        const indexAt = (a) => {
+            if (a < -g.spread / 2 - edge || a > g.spread / 2 + edge) {
+                return -1;
+            }
+            return Math.min(last, Math.max(0, Math.floor((a + edge + g.spread / 2) / step)));
+        };
+
+        /* 원 아래쪽 틈 근처에서는 첫 카드와 마지막 카드가 ±180도 경계를 사이에 두고 겹친다.
+           같은 자리를 360도 돌린 각도로도 보고, 더 위에 놓인(번호가 큰) 카드를 고른다 */
+        const index = Math.max(indexAt(angle), indexAt(angle - 360), indexAt(angle + 360));
+        return index < 0 ? null : cards[index];
     }
 
-    /* 누른 채로 좌우로 밀면 손가락 아래 카드가 살짝 올라와 미리 보이고, 떼면 그 카드를 고른다.
+    /* 누른 채로 원을 따라 밀면 손가락 아래 카드가 살짝 올라와 미리 보이고, 떼면 그 카드를 고른다.
        한 장이 차지하는 폭이 손가락보다 좁아서, 떼기 전에 어느 카드인지 확인할 수 있게 한다. */
     let aimed = null;
     let activePointer = null;

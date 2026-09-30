@@ -288,36 +288,53 @@ input.birth-input[aria-invalid="true"] { border-color: var(--danger); }
 /* --- 카드 뒷면 (뽑기 화면) --- */
 
 /*
- * 카드를 부채꼴로 편다. 각 카드를 같은 자리에 겹쳐 두고, 회전 중심을 카드 아래쪽 바깥으로
- * 내린 다음 각도만 달리 주면 호를 그리며 펼쳐진다. --angle 은 draw.js 가 넣는다.
+ * 카드를 바퀴 모양으로 두른다. 카드를 모두 원의 맨 위에 겹쳐 두고, 회전 중심을 원의 가운데
+ * (카드 위 끝에서 --radius 아래)로 잡은 다음 각도만 달리 주면 원을 따라 펼쳐진다.
+ * --angle 은 draw.js 가 넣는다.
+ *
+ * 처음에는 88도짜리 부채였는데 한 장이 보이는 폭이 13px 로 손가락보다 좁아 "고르기 힘들다",
+ * "더 넓게 펼쳐 달라" 는 피드백이 이어졌다. 340도로 두르면 바깥쪽에서 한 장당 40px 가까이 보인다.
  */
 .deck {
-    --card-width: 58px;
-    --spread: 88deg;          /* 부채 전체가 벌어지는 각도 */
-    --pivot: 240%;            /* 회전 중심. 클수록 호가 완만해진다 */
-    --arc-drop: 52px;         /* 바깥 카드가 호를 따라 내려앉는 만큼. 안 띄우면 아래 문구와 겹친다 */
+    --card-width: 52px;
+    --radius: 160px;          /* 원 중심에서 카드 위 끝까지 */
+    --spread: 340deg;         /* 카드가 차지하는 각도. 아래쪽에 조금 틈을 둔다 */
+    --pick-lift: 24px;        /* 고른 카드를 바깥으로 들어 올리는 만큼. draw.js 도 이 값을 읽는다 */
+    --lift-room: 34px;        /* 들어 올린 카드가 잘리지 않게 원 둘레에 남기는 여백 */
 
     position: relative;
-    height: 226px;
-    margin: 4px 0 2px;
+    height: calc(var(--radius) * 2 + var(--lift-room) * 2);
+    margin: 0 0 8px;
 
-    /* 부채는 본문 여백을 넘어 화면 끝까지 쓴다. 회전한 카드가 제 폭보다 넓은 자리를
-       차지하므로, 여백을 조금만 남겨도 부채가 눈에 띄게 좁아진다 */
+    /* 본문 여백을 넘어 화면 폭을 다 쓴다. 옆쪽 카드를 들어 올려도 가로 스크롤이 생기지 않게 자른다 */
     width: 100vw;
     margin-left: calc(50% - 50vw);
+    overflow: clip;
 
-    /* 카드 위에서 좌우로 밀어 고를 수 있게 가로 움직임은 페이지가 가져가지 않는다.
-       세로로 쓸면 평소처럼 스크롤된다 */
+    /* 빈 곳(가운데, 바깥)을 쓸면 평소처럼 스크롤된다. 카드 위에서 시작한 터치는 .card-back 이
+       페이지 스크롤을 막아서, 원을 따라 위아래로 밀어도 고르기가 끊기지 않는다 */
     touch-action: pan-y;
     user-select: none;
     -webkit-user-select: none;
     -webkit-touch-callout: none;
 }
 
-.card-back {
+/* 원 가운데에 남은 장수를 띄운다. 가운데는 카드가 없는 자리라 누르면 아무 카드도 고르지 않는다 */
+.deck .deck-status {
     position: absolute;
     left: 50%;
-    bottom: var(--arc-drop);
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: calc((var(--radius) - var(--card-width) * 1.68) * 2 - 20px);
+    margin: 0;
+    pointer-events: none;
+}
+
+.card-back {
+    touch-action: none;
+    position: absolute;
+    left: 50%;
+    top: var(--lift-room);
     width: var(--card-width);
     margin-left: calc(var(--card-width) / -2);
     aspect-ratio: 100 / 168;
@@ -334,7 +351,7 @@ input.birth-input[aria-invalid="true"] { border-color: var(--danger); }
     cursor: pointer;
     overflow: hidden;
     z-index: var(--z, 1);             /* draw.js 가 부채 순서대로 넣는다 */
-    transform-origin: 50% var(--pivot);
+    transform-origin: 50% var(--radius);   /* 원 중심 */
     transform: rotate(0deg);          /* 펼치기 전에는 한 자리에 포개져 있다 */
     /* 고르고 푸는 건 즉각적이어야 한다. 펼침 애니메이션 길이를 그대로 쓰면 굼떠 보인다 */
     transition: transform 0.16s ease-out,
@@ -370,7 +387,7 @@ input.birth-input[aria-invalid="true"] { border-color: var(--danger); }
 
 /* 터치로 누르고 있는 동안에는 손가락에 가려 테두리가 안 보이므로 살짝 들어 올린다 */
 .deck.spread.aiming .card-back.aimed:not(:disabled):not(.picked) {
-    transform: rotate(var(--angle)) translateY(-14px);
+    transform: rotate(var(--angle)) translateY(-12px);
 }
 
 /* 선택을 푼 직후. z-index 는 전환되지 않아서 그냥 두면 내려가는 도중에
@@ -378,7 +395,7 @@ input.birth-input[aria-invalid="true"] { border-color: var(--danger); }
 .deck.spread .card-back.returning { z-index: 250; }
 
 .deck.spread .card-back.picked {
-    transform: rotate(var(--angle)) translateY(-34px);
+    transform: rotate(var(--angle)) translateY(calc(var(--pick-lift) * -1));
     border-color: var(--gold);
     box-shadow: 0 8px 24px rgba(217, 178, 106, 0.3);
     z-index: 300;
@@ -676,13 +693,11 @@ input.birth-input[aria-invalid="true"] { border-color: var(--danger); }
 .doc ul { padding-left: 20px; }
 .doc li { margin-bottom: 6px; }
 
-/* 아주 좁은 화면. 회전한 카드는 제 폭보다 넓은 자리를 차지해서 각도를 더 줄여야 한다 */
+/* 아주 좁은 화면. 원 지름이 화면 폭을 넘지 않게 줄인다 */
 @media (max-width: 360px) {
     .deck {
-        --card-width: 52px;
-        --spread: 82deg;
-        --arc-drop: 44px;
-        height: 200px;
+        --card-width: 46px;
+        --radius: 146px;
     }
 }
 
@@ -692,11 +707,10 @@ input.birth-input[aria-invalid="true"] { border-color: var(--danger); }
     h1 { font-size: 2.1rem; }
     /* 데스크톱에서도 본문 폭에 가두지 않는다. 부채만 넓게 쓴다 */
     .deck {
-        --card-width: 96px;
-        --spread: 100deg;
-        --pivot: 235%;
-        --arc-drop: 104px;
-        height: 372px;
+        --card-width: 76px;
+        --radius: 230px;
+        --pick-lift: 30px;
+        --lift-room: 40px;
     }
     .btn-row { flex-direction: row; }
     .result-card img { width: 110px; flex-basis: 110px; }
