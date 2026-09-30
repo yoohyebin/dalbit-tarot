@@ -1,0 +1,12 @@
+# 달빛타로 DB 백업. dalbit-backup.timer 가 부른다.
+# 설치: docs/deployment.md 7장
+[Unit]
+Description=dalbit-tarot database backup
+Wants=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+# docker 그룹에 들어 있는 계정으로 돌린다. root 로 돌리면 백업 파일 주인이 root 가 된다
+User=ec2-user
+ExecStart=/home/ec2-user/dalbit-tarot/backup.sh
