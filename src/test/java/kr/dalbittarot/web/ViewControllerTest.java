@@ -62,6 +62,15 @@ class ViewControllerTest {
     }
 
     @Test
+    @DisplayName("생년월일은 달력이 아니라 숫자로 직접 입력한다")
+    void asksBirthDateAsDigits() throws Exception {
+        mockMvc.perform(get("/reading/input").param("category", "LOVE"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("inputmode=\"numeric\"")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("type=\"date\""))));
+    }
+
+    @Test
     @DisplayName("없는 카테고리로 입력 화면을 열면 404 를 준다")
     void rejectsUnknownCategoryOnInput() throws Exception {
         mockMvc.perform(get("/reading/input").param("category", "NOPE"))
@@ -93,6 +102,61 @@ class ViewControllerTest {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("/images/cards/")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("data-share-token=\"" + token + "\"")))
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("data-needs-interpretation=\"true\"")));
+    }
+
+    @Test
+    @DisplayName("결과 화면은 링크 미리보기용 og 태그를 절대 주소로 넣는다")
+    void rendersOpenGraphTags() throws Exception {
+        String token = drawReading();
+
+        mockMvc.perform(get("/reading/result/{shareToken}", token))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "<meta property=\"og:title\" content=\"금전운 타로 결과\">")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "<meta property=\"og:url\" content=\"http://localhost/reading/result/" + token + "\">")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(
+                        "<meta property=\"og:image\" content=\"http://localhost/images/share.jpg\">")));
+    }
+
+    @Test
+    @DisplayName("공유 미리보기에는 생년월일이 들어가지 않는다")
+    void keepsBirthDateOutOfSharePreview() throws Exception {
+        String body = mockMvc.perform(post("/api/readings")
+                        .contentType(APPLICATION_JSON)
+                        .content("""
+                                {"categoryCode":"LOVE","spreadType":"THREE_CARD","birthDate":"1998-03-15"}
+                                """))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String token = objectMapper.readTree(body).get("shareToken").asText();
+
+        mockMvc.perform(get("/reading/result/{shareToken}", token))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("og:description")))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("1998"))));
+    }
+
+    @Test
+    @DisplayName("카카오 키가 없으면 카카오 SDK 를 불러오지 않는다")
+    void skipsKakaoSdkWithoutKey() throws Exception {
+        String token = drawReading();
+
+        mockMvc.perform(get("/reading/result/{shareToken}", token))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("kakaocdn"))))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(">결과 공유하기</button>")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"copy-link\"")))
+                // 빈 값이면 Thymeleaf 가 속성을 빼고 그린다. JS 에서는 undefined 가 되어 기존 공유로 간다
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("data-kakao-key"))));
+    }
+
+    @Test
+    @DisplayName("공유 미리보기 이미지는 JPG 로 내려간다")
+    void servesShareImage() throws Exception {
+        mockMvc.perform(get("/images/share.jpg"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("image/jpeg"));
     }
 
     @Test

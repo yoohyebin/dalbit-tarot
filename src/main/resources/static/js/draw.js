@@ -71,6 +71,7 @@ function start(reading) {
 
     async function submit() {
         submitting = true;
+        release();
         cards.forEach((card) => {
             card.disabled = true;
             if (!card.classList.contains('picked')) {
@@ -108,27 +109,163 @@ function start(reading) {
         }
     }
 
-    cards.forEach((card) => {
-        card.addEventListener('click', () => {
-            if (submitting) {
-                return;
-            }
-            // 다시 누르면 선택을 푼다
-            if (picked.has(card)) {
-                picked.delete(card);
-                card.classList.remove('picked');
-                card.classList.add('returning');
-                setTimeout(() => card.classList.remove('returning'), PICK_DURATION_MS);
-                updateStatus();
-                return;
-            }
-            if (picked.size >= reading.cardCount) {
-                status.textContent = `${reading.cardCount}장까지만 고를 수 있어요`;
-                return;
-            }
-            picked.add(card);
-            card.classList.add('picked');
+    function toggle(card) {
+        if (submitting) {
+            return;
+        }
+        // 다시 누르면 선택을 푼다
+        if (picked.has(card)) {
+            picked.delete(card);
+            card.classList.remove('picked');
+            card.classList.add('returning');
+            setTimeout(() => card.classList.remove('returning'), PICK_DURATION_MS);
             updateStatus();
+            return;
+        }
+        if (picked.size >= reading.cardCount) {
+            status.textContent = `${reading.cardCount}장까지만 고를 수 있어요`;
+            return;
+        }
+        picked.add(card);
+        card.classList.add('picked');
+        updateStatus();
+    }
+
+    /* 누른 자리의 카드를 부채 모양으로 직접 계산한다.
+       브라우저에 맡기면(click 대상) 두 가지가 어긋난다.
+       - 휴대폰 브라우저는 손가락 면적 안에 버튼이 여러 개면 "가장 그럴듯한" 버튼으로 탭을 옮긴다.
+         카드 한 장이 보이는 폭이 손가락보다 좁아서 옆 카드로 옮겨지는 일이 생긴다
+       - 미리 보여 주려고 들어 올린 카드가 이웃을 덮어서, 밀어도 그 카드에서 벗어나지 않는다
+       pointer 이벤트 좌표는 보정 전 원래 좌표라, 이것으로 "화면에 보이는 카드"를 계산한다. */
+    const PICK_LIFT_PX = 34;   // .picked 의 translateY 와 맞춘다
+    const toDeg = (rad) => rad * 180 / Math.PI;
+
+    function geometry() {
+        const style = getComputedStyle(deck);
+        const sample = cards[0];
+        const rect = deck.getBoundingClientRect();
+        const pivotRatio = parseFloat(style.getPropertyValue('--pivot')) / 100;
+        // offset* 는 회전 전 자리라 기준으로 쓸 수 있다
+        return {
+            spread: parseFloat(style.getPropertyValue('--spread')),
+            pivotRatio,
+            width: sample.offsetWidth,
+            height: sample.offsetHeight,
+            pivotX: rect.left + rect.width / 2,
+            pivotY: rect.top + sample.offsetTop + sample.offsetHeight * pivotRatio,
+        };
+    }
+
+    function cardAt(clientX, clientY) {
+        const g = geometry();
+        const dx = clientX - g.pivotX;
+        const dy = g.pivotY - clientY;
+        const radius = Math.hypot(dx, dy);
+        const angle = toDeg(Math.atan2(dx, dy));   // 위가 0도, 오른쪽이 +
+        const last = cards.length - 1;
+        const step = g.spread / last;
+        const angleOf = (index) => (index / last - 0.5) * g.spread;
+
+        // 골라서 들어 올린 카드는 이웃을 통째로 덮고 있으니 먼저 본다
+        for (const card of picked) {
+            const turn = (angle - angleOf(cards.indexOf(card))) * Math.PI / 180;
+            const along = radius * Math.cos(turn);   // 카드 축 방향 거리
+            const side = radius * Math.sin(turn);    // 축에서 옆으로 벗어난 거리
+            const bottom = g.height * (g.pivotRatio - 1) + PICK_LIFT_PX;
+            if (Math.abs(side) <= g.width / 2 && along >= bottom && along <= bottom + g.height) {
+                return card;
+            }
+        }
+
+        const inner = g.height * (g.pivotRatio - 1);   // 카드 아래 끝까지 거리
+        const outer = g.height * g.pivotRatio;         // 카드 위 끝까지 거리
+        if (radius < inner - 12 || radius > outer + 12) {
+            return null;
+        }
+
+        /* 카드마다 보이는 곳은 왼쪽 끝부터 한 칸 폭이다. 나머지는 오른쪽 카드에 덮여 있다.
+           edge 는 카드 반폭이 이 거리에서 차지하는 각도, 즉 축에서 왼쪽 끝까지의 각도다 */
+        const r = Math.min(Math.max(radius, inner), outer);
+        const edge = toDeg(Math.asin(Math.min(1, g.width / 2 / r)));
+        if (angle < -g.spread / 2 - edge || angle > g.spread / 2 + edge) {
+            return null;
+        }
+        const index = Math.floor((angle + edge + g.spread / 2) / step);
+        return cards[Math.min(last, Math.max(0, index))];
+    }
+
+    /* 누른 채로 좌우로 밀면 손가락 아래 카드가 살짝 올라와 미리 보이고, 떼면 그 카드를 고른다.
+       한 장이 차지하는 폭이 손가락보다 좁아서, 떼기 전에 어느 카드인지 확인할 수 있게 한다. */
+    let aimed = null;
+    let activePointer = null;
+
+    function aim(card) {
+        if (aimed === card) {
+            return;
+        }
+        aimed?.classList.remove('aimed');
+        aimed = card;
+        aimed?.classList.add('aimed');
+    }
+
+    function release() {
+        activePointer = null;
+        deck.classList.remove('aiming');
+        aim(null);
+    }
+
+    deck.addEventListener('pointerdown', (event) => {
+        if (submitting || !event.isPrimary || event.button > 0) {
+            return;
+        }
+        activePointer = event.pointerId;
+        if (event.pointerType !== 'mouse') {
+            deck.classList.add('aiming');
+        }
+        aim(cardAt(event.clientX, event.clientY));
+    });
+
+    deck.addEventListener('pointermove', (event) => {
+        if (submitting) {
+            return;
+        }
+        // 마우스는 누르지 않아도 가리키는 카드를 밝힌다. 터치는 누른 동안에만 움직임이 온다
+        if (event.pointerType === 'mouse' || event.pointerId === activePointer) {
+            aim(cardAt(event.clientX, event.clientY));
+        }
+    });
+
+    deck.addEventListener('pointerup', (event) => {
+        if (event.pointerId !== activePointer) {
+            return;
+        }
+        const card = cardAt(event.clientX, event.clientY);
+        const isMouse = event.pointerType === 'mouse';
+        activePointer = null;
+        deck.classList.remove('aiming');
+        if (!isMouse) {
+            aim(null);
+        }
+        if (card) {
+            toggle(card);
+        }
+    });
+
+    // 세로로 쓸어 스크롤로 넘어가면 브라우저가 취소를 보낸다. 이때는 고르지 않는다
+    deck.addEventListener('pointercancel', release);
+    deck.addEventListener('pointerleave', (event) => {
+        if (event.pointerType === 'mouse') {
+            aim(null);
+        }
+    });
+
+    /* 키보드(Tab → Enter/Space)로 고르는 경우. 포인터로 누른 클릭은 위에서 처리했으므로
+       detail 이 0 인 키보드 클릭만 받는다 */
+    cards.forEach((card) => {
+        card.addEventListener('click', (event) => {
+            if (event.detail === 0) {
+                toggle(card);
+            }
         });
     });
 

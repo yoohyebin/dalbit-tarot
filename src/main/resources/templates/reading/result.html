@@ -46,7 +46,12 @@
     </section>
 
     <section class="btn-row">
-        <button type="button" class="btn" id="share">결과 공유하기</button>
+        <!-- 카톡으로 바로 보내거나, 링크만 복사해 다른 곳에 붙일 수 있게 둘 다 둔다 -->
+        <div class="share-row">
+            <button type="button" class="btn" id="share"
+                    th:text="${kakao.enabled()} ? '카카오톡으로 공유' : '결과 공유하기'">결과 공유하기</button>
+            <button type="button" class="btn btn-ghost" id="copy-link">링크 복사</button>
+        </div>
         <a class="btn btn-ghost" th:href="@{/reading/select}">다시 뽑기</a>
     </section>
 
@@ -57,7 +62,18 @@
 </main>
 
 <footer th:replace="~{fragments/layout :: siteFooter}"></footer>
+<!-- 카카오톡 공유. 키가 없으면 불러오지 않고 기존 공유 방식으로 동작한다.
+     async 로 불러와 해석 요청이 카카오 CDN 응답을 기다리지 않게 한다.
+     integrity 는 카카오 다운로드 페이지에 공개된 2.8.3 값이다. 버전을 올리면 같이 바꿔야 로드된다 -->
+<script th:if="${kakao.enabled()}" async
+        src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.3/kakao.min.js"
+        integrity="sha384-oroumrnFVE0xtgqyDZJARgERibXg2C28380uaUZz2kHDS5CR7tu20eGiOU6GkTpy"
+        crossorigin="anonymous"></script>
 <script th:src="@{/js/result.js}"
-        th:attr="data-share-token=${reading.shareToken},data-needs-interpretation=${reading.interpretation == null}"></script>
+        th:attr="data-share-token=${reading.shareToken},data-needs-interpretation=${reading.interpretation == null},
+                 data-kakao-key=${kakao.enabled()} ? ${kakao.javascriptKey} : '',
+                 data-share-title=${share.title},data-share-description=${share.description},
+                 data-share-url=${share.url},data-share-image=${share.imageUrl},
+                 data-share-image-width=${share.imageWidth},data-share-image-height=${share.imageHeight}"></script>
 </body>
 </html>

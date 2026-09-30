@@ -40,6 +40,8 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY}
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      # .env 에 없어도 빈 값으로 넘어가 기존 공유 방식으로 뜬다
+      KAKAO_JAVASCRIPT_KEY: ${KAKAO_JAVASCRIPT_KEY:-}
       TZ: Asia/Seoul
     volumes:
       - app-logs:/var/log/dalbit-tarot

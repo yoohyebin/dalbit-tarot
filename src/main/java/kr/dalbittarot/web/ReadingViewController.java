@@ -4,8 +4,10 @@ import kr.dalbittarot.category.CategoryService;
 import kr.dalbittarot.category.dto.CategoryResponse;
 import kr.dalbittarot.common.BusinessException;
 import kr.dalbittarot.reading.SpreadType;
+import kr.dalbittarot.reading.dto.ReadingResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import kr.dalbittarot.reading.ReadingService;
 
 import java.util.List;
@@ -26,10 +29,12 @@ import java.util.List;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
+@EnableConfigurationProperties(KakaoProperties.class)
 public class ReadingViewController {
 
     private final CategoryService categoryService;
     private final ReadingService readingService;
+    private final KakaoProperties kakaoProperties;
 
     @GetMapping("/reading/select")
     public String select(Model model) {
@@ -65,12 +70,25 @@ public class ReadingViewController {
     @GetMapping("/reading/result/{shareToken}")
     public ModelAndView result(@PathVariable String shareToken) {
         try {
+            ReadingResponse reading = readingService.findByShareToken(shareToken);
+
             ModelAndView view = new ModelAndView("reading/result");
-            view.addObject("reading", readingService.findByShareToken(shareToken));
+            view.addObject("reading", reading);
+            view.addObject("share", SharePreview.of(reading, baseUrl()));
+            view.addObject("kakao", kakaoProperties);
             return view;
         } catch (BusinessException e) {
             log.warn("결과 페이지 조회 실패. shareToken={}", shareToken);
             return new ModelAndView("error/not-found", HttpStatus.NOT_FOUND);
         }
+    }
+
+    /**
+     * 미리보기 이미지와 링크는 절대 주소여야 카카오·메신저 서버가 가져간다.
+     * 도메인을 따로 설정하지 않고 요청 주소에서 만든다. Nginx 뒤에서는 X-Forwarded-* 를 따르므로
+     * 운영에서도 사용자가 접속한 주소 그대로 나온다(application-prod.yml 의 forward-headers-strategy).
+     */
+    private String baseUrl() {
+        return ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
     }
 }
