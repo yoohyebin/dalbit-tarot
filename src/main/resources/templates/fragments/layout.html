@@ -29,6 +29,12 @@
     <a class="logo" th:href="@{/}">☾ 달빛타로</a>
 </header>
 
+<!-- 관리자 화면 탭. active 는 feedback / stats -->
+<nav th:fragment="adminTabs(active)" class="admin-tabs">
+    <a th:href="@{/admin/feedback}" th:classappend="${active == 'feedback'} ? 'active'">받은 의견</a>
+    <a th:href="@{/admin/stats}" th:classappend="${active == 'stats'} ? 'active'">LLM 호출</a>
+</nav>
+
 <footer th:fragment="siteFooter" class="site-footer">
     <p>해석 결과는 참고용 콘텐츠입니다. 의료·법률·투자 등의 판단 근거로 삼지 마세요.</p>
     <p><a th:href="@{/feedback}">의견 보내기</a> · <a th:href="@{/privacy}">개인정보처리방침</a></p>

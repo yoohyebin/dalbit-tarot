@@ -24,7 +24,7 @@ public class GeminiLlmClient implements LlmClient {
     }
 
     @Override
-    public String generate(String systemPrompt, String userPrompt) {
+    public LlmResponse generate(String systemPrompt, String userPrompt) {
         GenerateContentRequest request = GenerateContentRequest.of(
                 systemPrompt, userPrompt, properties.maxOutputTokens(), properties.temperature());
 
@@ -46,7 +46,24 @@ public class GeminiLlmClient implements LlmClient {
             throw LlmException.error("Gemini 호출 실패: " + e.getClass().getSimpleName(), e);
         }
 
-        return extractText(response);
+        String text = extractText(response);
+        GenerateContentResponse.UsageMetadata usage = response.usageMetadata();
+        if (usage == null) {
+            return LlmResponse.textOnly(text);
+        }
+        return new LlmResponse(text, usage.promptTokenCount(), billedOutputTokens(usage));
+    }
+
+    /** 추론(thinking) 토큰도 출력 단가로 과금된다. 둘 다 없으면 null */
+    private Integer billedOutputTokens(GenerateContentResponse.UsageMetadata usage) {
+        if (usage.candidatesTokenCount() == null && usage.thoughtsTokenCount() == null) {
+            return null;
+        }
+        return nullToZero(usage.candidatesTokenCount()) + nullToZero(usage.thoughtsTokenCount());
+    }
+
+    private int nullToZero(Integer value) {
+        return value == null ? 0 : value;
     }
 
     @Override
@@ -123,7 +140,8 @@ public class GeminiLlmClient implements LlmClient {
         record Part(String text) {
         }
 
-        record UsageMetadata(Integer promptTokenCount, Integer candidatesTokenCount, Integer totalTokenCount) {
+        record UsageMetadata(Integer promptTokenCount, Integer candidatesTokenCount,
+                             Integer thoughtsTokenCount, Integer totalTokenCount) {
         }
     }
 }

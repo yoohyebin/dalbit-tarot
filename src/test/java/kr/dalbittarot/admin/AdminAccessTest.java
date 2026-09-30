@@ -39,6 +39,26 @@ class AdminAccessTest {
     }
 
     @Test
+    @DisplayName("로그인하지 않으면 LLM 호출 통계에 못 들어간다")
+    void blocksAnonymousStats() throws Exception {
+        mockMvc.perform(get("/admin/stats"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/login"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("로그인하면 LLM 호출 통계를 본다")
+    void showsStatsWhenAuthenticated() throws Exception {
+        mockMvc.perform(get("/admin/stats"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/stats"))
+                .andExpect(model().attributeExists("stats"))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("최근 30일")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("href=\"/admin/feedback\"")));
+    }
+
+    @Test
     @DisplayName("로그인 화면은 누구나 볼 수 있다")
     void allowsLoginPage() throws Exception {
         mockMvc.perform(get("/admin/login"))

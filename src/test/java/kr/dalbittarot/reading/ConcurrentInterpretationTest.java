@@ -1,6 +1,7 @@
 package kr.dalbittarot.reading;
 
 import kr.dalbittarot.llm.LlmClient;
+import kr.dalbittarot.llm.LlmResponse;
 import kr.dalbittarot.reading.dto.ReadingCreateRequest;
 import kr.dalbittarot.reading.dto.ReadingResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -61,7 +62,7 @@ class ConcurrentInterpretationTest {
         given(llmClient.modelName()).willReturn("slow-stub");
         given(llmClient.generate(any(), any())).willAnswer(invocation -> {
             Thread.sleep(LLM_DELAY_MS);
-            return INTERPRETATION;
+            return LlmResponse.textOnly(INTERPRETATION);
         });
     }
 

@@ -12,7 +12,7 @@ class StubLlmClientTest {
     @Test
     @DisplayName("화면에서 실제 해석과 같은 모양으로 보이게 안내 문구를 넣지 않는다")
     void looksLikeARealReading() {
-        String result = client.generate("시스템", "사용자");
+        String result = client.generate("시스템", "사용자").text();
 
         assertThat(result)
                 .isNotBlank()

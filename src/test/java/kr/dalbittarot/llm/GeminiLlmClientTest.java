@@ -48,10 +48,38 @@ class GeminiLlmClientTest {
                  "usageMetadata":{"promptTokenCount":120,"candidatesTokenCount":80,"totalTokenCount":200}}
                 """);
 
-        String result = client.generate("시스템 프롬프트", "사용자 프롬프트");
+        String result = client.generate("시스템 프롬프트", "사용자 프롬프트").text();
 
         assertThat(result).isEqualTo("별 카드는 희망을 말합니다.");
         server.verify();
+    }
+
+    @Test
+    @DisplayName("토큰 사용량을 꺼낸다. 추론 토큰은 출력 단가로 과금되므로 출력에 더한다")
+    void extractsTokenUsageIncludingThoughts() {
+        respondWith("""
+                {"candidates":[{"content":{"parts":[{"text":"본문"}]},"finishReason":"STOP"}],
+                 "usageMetadata":{"promptTokenCount":460,"candidatesTokenCount":252,
+                                  "thoughtsTokenCount":30,"totalTokenCount":742}}
+                """);
+
+        LlmResponse response = client.generate("시스템", "사용자");
+
+        assertThat(response.promptTokens()).isEqualTo(460);
+        assertThat(response.outputTokens()).isEqualTo(282);
+    }
+
+    @Test
+    @DisplayName("사용량이 없으면 토큰은 null 로 둔다")
+    void leavesTokensNullWithoutUsage() {
+        respondWith("""
+                {"candidates":[{"content":{"parts":[{"text":"본문"}]},"finishReason":"STOP"}]}
+                """);
+
+        LlmResponse response = client.generate("시스템", "사용자");
+
+        assertThat(response.promptTokens()).isNull();
+        assertThat(response.outputTokens()).isNull();
     }
 
     @Test
@@ -123,6 +151,6 @@ class GeminiLlmClientTest {
                 {"candidates":[{"content":{"parts":[{"text":"잘린 본문"}]},"finishReason":"MAX_TOKENS"}]}
                 """);
 
-        assertThat(client.generate("시스템", "사용자")).isEqualTo("잘린 본문");
+        assertThat(client.generate("시스템", "사용자").text()).isEqualTo("잘린 본문");
     }
 }

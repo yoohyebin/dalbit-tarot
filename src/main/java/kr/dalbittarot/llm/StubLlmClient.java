@@ -19,12 +19,12 @@ public class StubLlmClient implements LlmClient {
     }
 
     @Override
-    public String generate(String systemPrompt, String userPrompt) {
+    public LlmResponse generate(String systemPrompt, String userPrompt) {
         log.debug("Stub 해석 생성. userPrompt={}", userPrompt);
-        return """
+        return LlmResponse.textOnly("""
                 뽑힌 카드는 지금의 흐름을 서둘러 밀어붙이기보다 한 박자 늦추라고 말합니다.
                 당장 눈에 보이는 변화는 크지 않겠지만, 준비해 둔 것이 조용히 자리를 잡는 시기입니다.
-                마음이 급해질 때마다 처음에 무엇을 바랐는지 떠올려 보세요.""";
+                마음이 급해질 때마다 처음에 무엇을 바랐는지 떠올려 보세요.""");
     }
 
     @Override
