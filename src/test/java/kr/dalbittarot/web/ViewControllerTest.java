@@ -136,6 +136,8 @@ class ViewControllerTest {
         mockMvc.perform(get("/reading/result/{shareToken}", token))
                 .andExpect(status().isOk())
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("kakaocdn"))))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString(">결과 공유하기</button>")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("id=\"copy-link\"")))
                 // 빈 값이면 Thymeleaf 가 속성을 빼고 그린다. JS 에서는 undefined 가 되어 기존 공유로 간다
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("data-kakao-key"))));
     }

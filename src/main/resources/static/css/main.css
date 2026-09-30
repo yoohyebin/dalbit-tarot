@@ -144,6 +144,10 @@ section { margin-bottom: 32px; }
 
 .btn-row { display: flex; flex-direction: column; gap: 10px; }
 
+.share-row { display: flex; gap: 10px; }
+.share-row #share { flex: 1.5; }
+.share-row #copy-link { flex: 1; }
+
 /* --- 카테고리 목록 --- */
 
 .category-list { display: flex; flex-direction: column; gap: 10px; }

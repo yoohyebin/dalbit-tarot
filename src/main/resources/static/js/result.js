@@ -150,12 +150,47 @@ shareButton.addEventListener('click', async () => {
         }
     }
 
-    try {
-        await navigator.clipboard.writeText(url);
-        const original = shareButton.textContent;
-        shareButton.textContent = '링크를 복사했어요';
-        setTimeout(() => { shareButton.textContent = original; }, 2_000);
-    } catch {
-        prompt('아래 주소를 복사해 공유하세요', url);
-    }
+    await copyLink(shareButton);
 });
+
+/* --- 링크 복사 ---
+   navigator.clipboard 는 HTTPS 에서만 열린다. HTTP 로 운영하는 동안에는 예전 방식
+   (textarea 를 선택해 execCommand('copy'))으로 복사한다. 이 방식은 HTTP 에서도 된다. */
+
+async function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return;
+    }
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');   // 휴대폰에서 키보드가 올라오지 않게
+    area.style.position = 'fixed';
+    area.style.top = '0';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
+    area.select();
+    area.setSelectionRange(0, text.length);   // iOS 는 select() 만으로 선택되지 않는다
+    const copied = document.execCommand('copy');
+    area.remove();
+    if (!copied) {
+        throw new Error('복사하지 못했습니다');
+    }
+}
+
+async function copyLink(button) {
+    try {
+        await copyText(share.url);
+        const original = button.textContent;
+        button.textContent = '복사했어요';
+        button.disabled = true;
+        setTimeout(() => {
+            button.textContent = original;
+            button.disabled = false;
+        }, 2_000);
+    } catch {
+        prompt('아래 주소를 복사해 공유하세요', share.url);
+    }
+}
+
+document.getElementById('copy-link').addEventListener('click', (event) => copyLink(event.currentTarget));
