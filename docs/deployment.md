@@ -82,6 +82,20 @@ mkdir -p ~/dalbit-tarot/{nginx,certbot/conf,certbot/www,backup}
 | `GEMINI_API_KEY` | **유료 티어 키.** 무료 티어는 입력이 모델 학습에 쓰인다 |
 | `ADMIN_USERNAME` | 관리자 화면 아이디. 기본 `admin` |
 | `ADMIN_PASSWORD` | 관리자 화면 비밀번호. 로컬에서 쓰던 값을 그대로 쓰지 않는다 |
+| `KAKAO_JAVASCRIPT_KEY` | 카카오톡 공유용 JavaScript 키. 비워 두면 기존 공유 방식(공유 시트 → 링크 복사)으로 동작한다 |
+
+### 카카오톡 공유 (선택)
+
+[Kakao Developers](https://developers.kakao.com/) 에서 앱을 만들고 아래 두 곳에 사이트 주소를 등록한다.
+주소는 `http://` / `https://` 까지 정확히 적는다. 도메인을 바꾸면 여기도 바꿔야 공유가 동작한다.
+
+| 위치 | 값 |
+|---|---|
+| 앱 → 플랫폼 키 → JavaScript 키 → JavaScript SDK 도메인 | 서비스 주소. 로컬에서 시험하려면 `http://localhost:8080` 도 |
+| 앱 → 제품 링크 관리 → 웹 도메인 | 서비스 주소 |
+
+JavaScript 키를 `.env` 의 `KAKAO_JAVASCRIPT_KEY` 에 넣고 `docker compose -f compose.prod.yaml up -d app` 로 다시 띄운다.
+이 키는 페이지 소스에 그대로 노출되는 값이라 비밀값은 아니다. 등록한 도메인에서만 동작한다.
 
 `ADMIN_PASSWORD` 를 비워 두면 컨테이너가 뜰 때마다 무작위 비밀번호를 만들어 로그에만 남긴다.
 재시작하면 값이 바뀌므로 운영에서는 채워 둔다.

@@ -5,6 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="카드를 뽑으면 관심 분야에 맞춰 해석을 보여주는 무료 타로 서비스입니다.">
+    <!-- 결과 화면에서만 채운다. 카카오톡·메신저에 링크를 붙였을 때 미리보기로 쓰인다 -->
+    <th:block th:if="${share != null}">
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="달빛타로">
+        <meta property="og:title" th:content="${share.title}">
+        <meta property="og:description" th:content="${share.description}">
+        <meta property="og:url" th:content="${share.url}">
+        <meta property="og:image" th:content="${share.imageUrl}">
+        <meta property="og:image:width" th:content="${share.imageWidth}">
+        <meta property="og:image:height" th:content="${share.imageHeight}">
+    </th:block>
     <title th:text="${pageTitle} != null ? ${pageTitle} + ' · 달빛타로' : '달빛타로'">달빛타로</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

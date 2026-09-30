@@ -68,3 +68,8 @@ dalbit:
     # 비워 두면 기동할 때마다 무작위 비밀번호를 만들어 로그에 찍는다.
     username: ${ADMIN_USERNAME:admin}
     password: ${ADMIN_PASSWORD:}
+
+  kakao:
+    # 카카오톡 공유용 JavaScript 키. 페이지 소스에 그대로 노출되는 키라 비밀값은 아니다.
+    # 비워 두면 카카오 SDK 를 불러오지 않고 기존 공유(공유 시트 → 링크 복사)로 동작한다
+    javascript-key: ${KAKAO_JAVASCRIPT_KEY:}
