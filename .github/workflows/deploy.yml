@@ -101,6 +101,10 @@ jobs:
     needs: image
     runs-on: ubuntu-latest
     permissions:
+      # job 에 권한을 하나라도 적으면 나머지는 전부 없어진다. 설정 파일을 받으려고
+      # checkout 하므로 저장소 읽기 권한도 적어야 한다. 빠지면 비공개 저장소라
+      # "repository not found" 로 실패한다
+      contents: read
       # 서버가 GITHUB_TOKEN 으로 GHCR 에서 이미지를 받는다.
       # 저장소 기본 권한 설정에 기대지 않고 명시한다
       packages: read
