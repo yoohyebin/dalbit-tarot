@@ -126,6 +126,28 @@ jobs:
             --group-id "${{ secrets.EC2_SECURITY_GROUP_ID }}" \
             --ip-permissions "IpProtocol=tcp,FromPort=22,ToPort=22,IpRanges=[{CidrIp=${{ steps.runner.outputs.ip }}/32,Description=github-actions-deploy}]"
 
+      # compose·Nginx 설정은 저장소가 기준이다. 전에는 바뀔 때마다 사람이 직접 scp 했는데,
+      # 빠뜨리면 새 이미지가 옛 설정으로 뜬다(카카오 키가 앱에 안 넘어가는 식으로).
+      # .env 는 비밀값이 있어 서버에만 두고 옮기지 않는다
+      - name: 설정 파일 받기
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: deploy
+
+      - name: 서버에 설정 파일 올리기
+        env:
+          SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          TARGET: ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}
+        run: |
+          key="$RUNNER_TEMP/deploy_key"
+          printf '%s\n' "$SSH_KEY" > "$key"
+          chmod 600 "$key"
+          opts=(-i "$key" -o StrictHostKeyChecking=accept-new -o ConnectTimeout=15)
+          # 바로 덮어쓰지 않고 .new 로 올린다. 배포 단계에서 검사한 뒤 바꿔 넣는다
+          scp "${opts[@]}" deploy/compose.prod.yaml "$TARGET:dalbit-tarot/compose.prod.yaml.new"
+          scp "${opts[@]}" deploy/nginx/dalbit-tarot.conf "$TARGET:dalbit-tarot/nginx/dalbit-tarot.conf.new"
+          rm -f "$key"
+
       - name: EC2 에 배포
         uses: appleboy/ssh-action@v1
         with:
@@ -136,6 +158,12 @@ jobs:
             set -e
             cd ~/dalbit-tarot
 
+            # 올려 둔 설정 파일로 바꿔 넣는다. compose 는 먼저 검사해서 깨진 파일로 서비스를 내리지 않는다
+            docker compose -f compose.prod.yaml.new config -q
+            mv compose.prod.yaml.new compose.prod.yaml
+            cp nginx/dalbit-tarot.conf nginx/dalbit-tarot.conf.bak
+            mv nginx/dalbit-tarot.conf.new nginx/dalbit-tarot.conf
+
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # .env 의 APP_IMAGE 를 이번 태그로 바꾼다
@@ -143,6 +171,15 @@ jobs:
 
             docker compose -f compose.prod.yaml pull app
             docker compose -f compose.prod.yaml up -d
+
+            # Nginx 는 이미지가 그대로면 다시 뜨지 않아서 바뀐 설정을 직접 다시 읽힌다.
+            # 설정이 틀리면 이전 설정으로 되돌리고 배포를 실패로 둔다. 실행 중인 Nginx 는 옛 설정 그대로 돈다
+            if ! docker compose -f compose.prod.yaml exec -T nginx nginx -t; then
+              mv nginx/dalbit-tarot.conf.bak nginx/dalbit-tarot.conf
+              echo "Nginx 설정 오류. 이전 설정으로 되돌렸다"
+              exit 1
+            fi
+            docker compose -f compose.prod.yaml exec -T nginx nginx -s reload
 
             # 헬스체크. 실패하면 배포를 실패로 표시한다
             for i in $(seq 1 30); do

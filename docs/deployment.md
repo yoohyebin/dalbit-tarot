@@ -72,6 +72,12 @@ mkdir -p ~/dalbit-tarot/{nginx,certbot/conf,certbot/www,backup}
 - `deploy/nginx/dalbit-tarot.conf` → `nginx/dalbit-tarot.conf`
 - `deploy/.env.example` → `.env` (값 채우기)
 
+앞의 두 파일은 **처음 한 번만** 직접 복사한다. 이후에는 배포할 때마다 워크플로가 저장소의
+파일을 올리고, compose 는 문법을, Nginx 는 `nginx -t` 로 검사한 뒤 바꿔 넣는다. Nginx 설정이
+틀리면 이전 설정으로 되돌리고 배포를 실패로 표시한다.
+
+`.env` 는 비밀값이 있어 워크플로가 건드리지 않는다. 새 환경변수가 생기면 서버의 `.env` 에 직접 추가한다.
+
 `.env` 에 넣을 값:
 
 | 키 | 설명 |
