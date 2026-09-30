@@ -50,6 +50,8 @@ class KakaoShareViewTest {
                         "integrity=\"sha384-oroumrnFVE0xtgqyDZJARgERibXg2C28380uaUZz2kHDS5CR7tu20eGiOU6GkTpy\"",
                         "/js/result.js")))
                 .andExpect(content().string(containsString("data-kakao-key=\"test-js-key\"")))
+                .andExpect(content().string(containsString(">카카오톡으로 공유</button>")))
+                .andExpect(content().string(containsString("id=\"copy-link\"")))
                 .andExpect(content().string(containsString("data-share-title=\"애정운 타로 결과\"")))
                 .andExpect(content().string(containsString(
                         "data-share-url=\"http://localhost/reading/result/" + token + "\"")));

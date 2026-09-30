@@ -46,7 +46,12 @@
     </section>
 
     <section class="btn-row">
-        <button type="button" class="btn" id="share">결과 공유하기</button>
+        <!-- 카톡으로 바로 보내거나, 링크만 복사해 다른 곳에 붙일 수 있게 둘 다 둔다 -->
+        <div class="share-row">
+            <button type="button" class="btn" id="share"
+                    th:text="${kakao.enabled()} ? '카카오톡으로 공유' : '결과 공유하기'">결과 공유하기</button>
+            <button type="button" class="btn btn-ghost" id="copy-link">링크 복사</button>
+        </div>
         <a class="btn btn-ghost" th:href="@{/reading/select}">다시 뽑기</a>
     </section>
 
