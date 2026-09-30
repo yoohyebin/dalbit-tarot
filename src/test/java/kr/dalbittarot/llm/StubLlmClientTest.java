@@ -10,13 +10,14 @@ class StubLlmClientTest {
     private final StubLlmClient client = new StubLlmClient();
 
     @Test
-    @DisplayName("실제 해석으로 오인되지 않게 대역임을 밝힌다")
-    void statesThatItIsNotARealReading() {
+    @DisplayName("화면에서 실제 해석과 같은 모양으로 보이게 안내 문구를 넣지 않는다")
+    void looksLikeARealReading() {
         String result = client.generate("시스템", "사용자");
 
         assertThat(result)
-                .contains("예시 응답")
-                .contains("실제 해석이 아닙니다");
+                .isNotBlank()
+                .doesNotContain("예시 응답")
+                .doesNotContain("API 키");
     }
 
     @Test
